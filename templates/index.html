@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spotify Jam</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <audio id="audio" controls>
+        <source src="{{ url_for('static', filename='musicfile.mp3') }}" type="audio/mpeg">
+    </audio>
+    <script>
+        var socket = io.connect('https://jukebox.sebastianalexis.com', {
+            transports: ['polling'], // Use long polling
+            secure: true
+        });
+        var audio = document.getElementById('audio');
+        var isPlaying = false;
+        var syncInterval = 5000;  // Sync every 5 seconds
+        var syncThreshold = 0.5;  // 500 milliseconds
+
+        socket.on('connect', function() {
+            console.log("Connected to server");
+            socket.emit('request_sync');
+        });
+
+        socket.on('play', function(data) {
+            console.log("Play event received from server", data);
+            audio.currentTime = data.timestamp;
+            if (!isPlaying) {
+                audio.play();
+                isPlaying = true;
+            }
+        });
+
+        socket.on('pause', function(data) {
+            console.log("Pause event received from server", data);
+            audio.currentTime = data.timestamp;
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+            }
+        });
+
+        socket.on('sync', function(data) {
+            console.log("Sync event received from server", data);
+            var currentTimeDiff = Math.abs(audio.currentTime - data.timestamp);
+            if (currentTimeDiff > syncThreshold) {
+                audio.currentTime = data.timestamp;
+            }
+            if (data.is_playing && !isPlaying) {
+                audio.play();
+                isPlaying = true;
+            } else if (!data.is_playing && isPlaying) {
+                audio.pause();
+                isPlaying = false;
+            }
+        });
+
+        audio.onplay = function() {
+            console.log("Audio play event detected");
+            if (!isPlaying) {
+                isPlaying = true;
+                socket.emit('play', {});
+            }
+        };
+
+        audio.onpause = function() {
+            console.log("Audio pause event detected");
+            if (isPlaying) {
+                isPlaying = false;
+                socket.emit('pause', {});
+            }
+        };
+
+        // Send timestamp every 500 milliseconds while audio is playing
+        setInterval(function() {
+            if (isPlaying) {
+                console.log("Sending timestamp to server", { timestamp: audio.currentTime });
+                socket.emit('timestamp', { timestamp: audio.currentTime });
+            }
+        }, 500);
+
+        setInterval(function() {
+            console.log("Requesting sync from server");
+            socket.emit('request_sync');
+        }, syncInterval);
+
+        // Log connection issues
+        socket.on('connect_error', function(error) {
+            console.error('Connection Error:', error);
+        });
+
+        socket.on('disconnect', function(reason) {
+            console.log('Disconnected:', reason);
+        });
+    </script>
+</body>
+</html>
