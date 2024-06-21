@@ -1,7 +1,11 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory, request
 from flask_socketio import SocketIO, emit
+from peewee import *
+from queries import *
+from db.model import *
+from music_downloader import *
 import logging
-from time import time
+import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -9,13 +13,22 @@ socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=
 
 current_timestamp = 0
 is_playing = False
-last_update_time = time()
+last_update_time = time.time()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 @app.route('/')
 def index():
     return render_template('index.html')
+@app.route('/music/<name>')
+def music(name):
+    return send_from_directory('static', name)
+@app.route('/add_song', methods=['POST'])
+def add_song():
+    url = request.form['songurl']
+    maindownload(url)
+    time.sleep(5)
+    return open("incoming.spotdl").read()
 
 @socketio.on('connect')
 def handle_connect():
