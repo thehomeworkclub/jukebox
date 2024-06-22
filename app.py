@@ -5,6 +5,7 @@ import time
 from music_downloader import maindownload
 import os
 import json
+import random
 import asyncio
 
 app = Flask(__name__)
@@ -49,7 +50,7 @@ def add_song():
 
 @app.route('/jbtheme')
 def jbtheme():
-    return send_file("jukeboxtheme.css")
+    send_file('jukeboxtheme.css')
 
 def get_current_song():
     if queue and 0 <= current_song_index < len(queue):
@@ -195,6 +196,13 @@ def load_library():
     global queue
     with open(LIBDATA_FILE, 'r') as file:
         queue = json.load(file)
+
+@app.route('/shuffle')
+def shuffle():
+    global queue
+    random.shuffle(queue)
+    return jsonify({'status': 'success'})
+
 
 if __name__ == '__main__':
     load_library()
