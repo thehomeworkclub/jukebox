@@ -12,7 +12,8 @@ socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=
 
 current_timestamp = 0
 is_playing = False
-# TODO: Add song name, artist, id, variables and syncing
+queue = []
+current_song_index = 0
 last_update_time = time.time()
 
 logging.basicConfig(level=logging.DEBUG)
@@ -36,7 +37,6 @@ def get_library():
     logging.debug(f"Library data: {data}")
     return jsonify(data)
 
-
 @app.route('/add_song', methods=['POST'])
 def add_song():
     url = request.form['songurl']
@@ -55,30 +55,31 @@ def handle_connect():
 def handle_play(data):
     global is_playing, current_timestamp, last_update_time
     logging.debug("Play event received")
+    current_timestamp = data['timestamp']
     is_playing = True
-    print("IKLFHGAWSEIKLURGVHBIKLWE" + str(last_update_time))
     last_update_time = time.time()
     emit('play', {'timestamp': current_timestamp}, broadcast=True)
+
 
 @socketio.on('pause')
 def handle_pause(data):
     global is_playing, current_timestamp, last_update_time
     logging.debug("Pause event received")
+    current_timestamp = data['timestamp']
     is_playing = False
-    current_timestamp += time.time() - last_update_time
     last_update_time = time.time()
     emit('pause', {'timestamp': current_timestamp}, broadcast=True)
+
 
 @socketio.on('sync')
 def handle_sync(data):
     global current_timestamp, is_playing, last_update_time
-    if not is_playing:     
-        logging.debug(f"Sync event received with data: {data}")
-        if 'timestamp' in data:
-            current_timestamp = data['timestamp']
-        is_playing = data['is_playing']
-        last_update_time = time.time()
-        emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
+    logging.debug(f"Sync event received with data: {data}")
+    if 'timestamp' in data:
+        current_timestamp = data['timestamp']
+    is_playing = data['is_playing']
+    last_update_time = time.time()
+    emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
 
 @socketio.on('request_sync')
 def handle_request_sync():
@@ -101,13 +102,53 @@ def handle_seek(data):
     last_update_time = time.time()
     emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
 
-# TODO: Add a route to move song ahead in the queue
+@socketio.on('next_song')
+def handle_next_song():
+    global current_song_index, queue, current_timestamp, is_playing, last_update_time
+    logging.debug("Next song requested")
+    current_timestamp = 0
+    current_song_index += 1
+    if current_song_index >= len(queue):
+        current_song_index = 0
+    if queue:
+        next_song = queue[current_song_index]
+        current_timestamp = 0
+        is_playing = True
+        last_update_time = time.time()
+        emit('next_song', {
+            'filename': next_song['path'],
+            'title': next_song['name'],
+            'artist': next_song['artist'],
+            'cover_art': next_song['cover_url']
+        }, broadcast=True)
+    else:
+        is_playing = False
+        emit('pause', {'timestamp': 0}, broadcast=True)
 
-# TODO: Add a route to move song back in the queue
+@socketio.on('select_song')
+def handle_select_song(data):
+    global current_song_index, queue, current_timestamp, last_update_time, is_playing
+    logging.debug(f"Song selected: {data}")
+    current_song_index = data['index']
+    if current_song_index < len(queue):
+        selected_song = queue[current_song_index]
+        current_timestamp = 0  # Change timestamp to 0 on song switch
+        is_playing = True
+        last_update_time = time.time()
+        emit('song_selected', {
+            'filename': selected_song['path'],
+            'title': selected_song['name'],
+            'artist': selected_song['artist'],
+            'cover_art': selected_song['cover_url']
+        }, broadcast=True)
+    else:
+        logging.error("Selected song index out of range.")
 
-# TODO: Add a route to return the queue / playhead
-
-
+def load_library():
+    global queue
+    with open(LIBDATA_FILE, 'r') as file:
+        queue = json.load(file)
 
 if __name__ == '__main__':
+    load_library()
     socketio.run(app, host='0.0.0.0', port=5000)
