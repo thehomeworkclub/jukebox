@@ -1,7 +1,0 @@
-db/__pycache__
-__pycache__
-.env
-.cache
-db/db.db
-library
-library/*

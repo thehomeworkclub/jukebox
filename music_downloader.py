@@ -53,7 +53,7 @@ async def maindownload(playlist_url):
         return
 
     incoming_file = fetch_metadata(playlist_url)
-    os.remove(incoming_file)
+    #os.remove(incoming_file)
     if not incoming_file:
         return
 
@@ -78,6 +78,7 @@ async def maindownload(playlist_url):
         with open(libdata_file, 'w') as file:
             json.dump(libdata, file, indent=4)
 
+        #
         os.remove(incoming_file)
 
         async with aiohttp.ClientSession() as session:

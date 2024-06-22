@@ -45,40 +45,41 @@
         "artist_id": "4pJCawaKSZ40EnxN0YEYw3"
     },
     {
-        "name": "SH-BOOM",
+        "name": "Just the Two of Us (feat. Bill Withers) - Edit",
         "artists": [
-            "The Chords"
+            "Grover Washington, Jr.",
+            "Bill Withers"
         ],
-        "artist": "The Chords",
+        "artist": "Grover Washington, Jr.",
         "genres": [
-            "doo-wop"
+            "soul jazz"
         ],
         "disc_number": 1,
         "disc_count": 1,
-        "album_name": "Singing On The Street Corner",
-        "album_artist": "Various Artists",
+        "album_name": "Lean on Me: The Best of Bill Withers",
+        "album_artist": "Bill Withers",
         "album_type": "compilation",
-        "duration": 147,
-        "year": "2017",
-        "date": "2017-10-25",
-        "track_number": 17,
-        "tracks_count": 30,
-        "song_id": "2UciXrloIjT1cEfy9Kip4A",
+        "duration": 237,
+        "year": "1994",
+        "date": "1994-08-09",
+        "track_number": 18,
+        "tracks_count": 18,
+        "song_id": "2tH28YyKYOldxhuBHoI79M",
         "explicit": false,
-        "publisher": "Oldays Records",
-        "url": "https://open.spotify.com/track/2UciXrloIjT1cEfy9Kip4A",
-        "isrc": "TCJPV2334588",
-        "cover_url": "https://i.scdn.co/image/ab67616d0000b2732a9e98690dca011a20ff7bce",
-        "copyright_text": "(C) 2017 Oldays Records",
+        "publisher": "Legacy Recordings",
+        "url": "https://open.spotify.com/track/2tH28YyKYOldxhuBHoI79M",
+        "isrc": "USEE10250233",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b273f8560af696925c50080dcc35",
+        "copyright_text": "This compilation (P) 1994 Sony Music Entertainment",
         "download_url": null,
         "lyrics": null,
-        "popularity": 38,
-        "album_id": "5q23JzsqK1n3WKvdKAr1ub",
+        "popularity": 62,
+        "album_id": "0XmgSYx9bj4sqpcXVgKs2C",
         "list_name": "JukeboxTest",
         "list_url": "https://open.spotify.com/playlist/7IXTedx5tRGadIjaCThQUK?si=ada181a04b15462c",
-        "list_position": 4,
+        "list_position": 1,
         "list_length": 4,
-        "artist_id": "2iSZ41LUUYVcz5At9Xuz7T"
+        "artist_id": "05YVYeV4HxYp5rrWalvuE1"
     },
     {
         "name": "That's Life - 2008 Remastered",
@@ -119,40 +120,39 @@
         "artist_id": "1Mxqyy3pSjf8kZZL4QVxS0"
     },
     {
-        "name": "Just the Two of Us (feat. Bill Withers) - Edit",
+        "name": "SH-BOOM",
         "artists": [
-            "Grover Washington, Jr.",
-            "Bill Withers"
+            "The Chords"
         ],
-        "artist": "Grover Washington, Jr.",
+        "artist": "The Chords",
         "genres": [
-            "soul jazz"
+            "doo-wop"
         ],
         "disc_number": 1,
         "disc_count": 1,
-        "album_name": "Lean on Me: The Best of Bill Withers",
-        "album_artist": "Bill Withers",
+        "album_name": "Singing On The Street Corner",
+        "album_artist": "Various Artists",
         "album_type": "compilation",
-        "duration": 237,
-        "year": "1994",
-        "date": "1994-08-09",
-        "track_number": 18,
-        "tracks_count": 18,
-        "song_id": "2tH28YyKYOldxhuBHoI79M",
+        "duration": 147,
+        "year": "2017",
+        "date": "2017-10-25",
+        "track_number": 17,
+        "tracks_count": 30,
+        "song_id": "2UciXrloIjT1cEfy9Kip4A",
         "explicit": false,
-        "publisher": "Legacy Recordings",
-        "url": "https://open.spotify.com/track/2tH28YyKYOldxhuBHoI79M",
-        "isrc": "USEE10250233",
-        "cover_url": "https://i.scdn.co/image/ab67616d0000b273f8560af696925c50080dcc35",
-        "copyright_text": "This compilation (P) 1994 Sony Music Entertainment",
+        "publisher": "Oldays Records",
+        "url": "https://open.spotify.com/track/2UciXrloIjT1cEfy9Kip4A",
+        "isrc": "TCJPV2334588",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b2732a9e98690dca011a20ff7bce",
+        "copyright_text": "(C) 2017 Oldays Records",
         "download_url": null,
         "lyrics": null,
-        "popularity": 62,
-        "album_id": "0XmgSYx9bj4sqpcXVgKs2C",
+        "popularity": 38,
+        "album_id": "5q23JzsqK1n3WKvdKAr1ub",
         "list_name": "JukeboxTest",
         "list_url": "https://open.spotify.com/playlist/7IXTedx5tRGadIjaCThQUK?si=ada181a04b15462c",
-        "list_position": 1,
+        "list_position": 4,
         "list_length": 4,
-        "artist_id": "05YVYeV4HxYp5rrWalvuE1"
+        "artist_id": "2iSZ41LUUYVcz5At9Xuz7T"
     }
 ]
