@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, jsonify, request
+from flask import Flask, render_template, send_from_directory, jsonify, request, send_file
 from flask_socketio import SocketIO, emit
 import logging
 import time
@@ -46,6 +46,10 @@ def add_song():
     asyncio.run(maindownload(url))
     time.sleep(5)
     return jsonify({'status': 'success'})
+
+@app.route('/jbtheme')
+def jbtheme():
+    return send_file("jukeboxtheme.css")
 
 def get_current_song():
     if queue and 0 <= current_song_index < len(queue):
