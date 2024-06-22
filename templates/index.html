@@ -188,18 +188,18 @@
         });
 
         function playpause() {
-            if (!hasPlayed) {
-                requestInitialSync();
-                hasPlayed = true;
-                playsong(true);
-            } else {
+            // if (!hasPlayed) {
+            //     requestInitialSync();
+            //     hasPlayed = true;
+            //     playsong(true);
+            // } else {
                 if (isPlaying) {
                     pausesong();
                 } else {
                     playsong();
                 }
             }
-        }
+        // }
 
 
         function playsong(skipTimestamp) {
