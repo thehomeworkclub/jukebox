@@ -37,7 +37,7 @@ async def download_song(session, song):
 
     if process.returncode == 0:
         print(f"Downloaded {song['name']} by {song['artists']}")
-        song['path'] = os.path.join(lib, f"{song['artist']} - {song['name']}.mp3")  # Save the path in the song dictionary
+        song['path'] = os.path.join(f"{song['artist']} - {song['name']}.mp3")  # Save the path in the song dictionary
         print(song['path'])
     else:
         print(f"Failed to download {song['name']} by {song['artists']}: {stderr.decode()}")

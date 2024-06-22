@@ -1,0 +1,34 @@
+/*  All values are in OKLCH, use oklch.com to convert  */
+
+[data-theme=jukebox] {
+    color-scheme: dark;
+    --in: 72.06% 0.191 231.6; /* info */
+    --su: 64.8% 0.150 160; /* success */
+    --wa: 84.71% 0.199 83.87; /* warning */
+    --er: 71.76% 0.221 22.18; /* error */
+    --pc: 89.824% 0.06192 275.75; /* primary-content */
+    --ac: 15.352% 0.0368 183.61; /* accent-content */
+    --inc: 0% 0 0; /* info-content */
+    --suc: 0% 0 0; /* success-content */
+    --wac: 0% 0 0; /* warning-content */
+    --erc: 0% 0 0; /* error-content */
+    --rounded-box: 1rem;
+    --rounded-btn: 0.5rem;
+    --rounded-badge: 1.9rem;
+    --animation-btn: 0.25s;
+    --animation-input: .2s;
+    --btn-focus-scale: 0.95;
+    --border-btn: 1px;
+    --tab-border: 1px;
+    --tab-radius: 0.5rem;
+    --p: 44.35% 0.108 153.62; /* primary */
+    --s: 76.9% 0.14799001923485985 305.0556861530813; /* secondary */
+    --sc: 98.71% 0.0106 342.55; /* secondary-content */
+    --a: 61.77% 0.226 302.12; /* accent */
+    --n: 17.5% 0 145; /* neutral */
+    --nc: 100% 0 0; /* neutral-content */
+    --b1: 14.89% 0.008 164.48; /* base-100 */
+    --b2: 96.1151% 0 0; /* base-200 */
+    --b3: 92.4169% 0.00108 197.137559; /* base-300 */
+    --bc: 27.8078% 0.029596 256.847952 /* base-content */
+}

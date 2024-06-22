@@ -11,13 +11,14 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
 
+global current_timestamp, is_playing, queue, current_song_index, last_update_time
 current_timestamp = 0
 is_playing = False
 queue = []
 current_song_index = 0
 last_update_time = time.time()
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.DEBUG)
 
 LIBRARY_FOLDER = 'library'
 LIBDATA_FILE = 'libdata.json'
@@ -46,18 +47,38 @@ def add_song():
     time.sleep(5)
     return jsonify({'status': 'success'})
 
+def get_current_song():
+    if queue and 0 <= current_song_index < len(queue):
+        return queue[current_song_index]
+    return None
+
 @socketio.on('connect')
 def handle_connect():
-    global current_timestamp, is_playing, last_update_time
+    global current_timestamp, is_playing, last_update_time, queue, current_song_index
     logging.debug("Client connected")
-    emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing})
+    current_song = get_current_song()
+    if current_song:
+        emit('sync', {
+            'timestamp': current_timestamp,
+            'is_playing': is_playing,
+            'song': {
+                'filename': current_song['path'],
+                'title': current_song['name'],
+                'artist': current_song['artist'],
+                'cover_art': current_song['cover_url']
+            }
+        })
+    else:
+        emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing})
+
 
 @socketio.on('play')
 def handle_play(data):
     global is_playing, current_timestamp, last_update_time
-    logging.debug("Play event received")
+    logging.debug(f"Play event received with data: {data}")
     if 'timestamp' in data:
         current_timestamp = data['timestamp']
+        logging.debug(f"Updated current_timestamp to: {current_timestamp}")
     else:
         logging.warning("Timestamp not found in play data")
     is_playing = True
@@ -67,14 +88,23 @@ def handle_play(data):
 @socketio.on('pause')
 def handle_pause(data):
     global is_playing, current_timestamp, last_update_time
-    logging.debug("Pause event received")
+    logging.debug(f"Pause event received with data: {data}")
     if 'timestamp' in data:
         current_timestamp = data['timestamp']
+        logging.debug(f"Updated current_timestamp to: {current_timestamp}")
     else:
         logging.warning("Timestamp not found in pause data")
     is_playing = False
     last_update_time = time.time()
     emit('pause', {'timestamp': current_timestamp}, broadcast=True)
+
+
+@socketio.on('request_sync')
+def handle_request_sync():
+    global current_timestamp, is_playing, last_update_time
+    logging.debug("Sync request received")
+    print ("ASIJOSIDJIOSJDIOASDISDJ" + str(current_timestamp))
+    emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing})
 
 @socketio.on('sync')
 def handle_sync(data):
@@ -82,6 +112,7 @@ def handle_sync(data):
     logging.debug(f"Sync event received with data: {data}")
     if 'timestamp' in data:
         current_timestamp = data['timestamp']
+        logging.debug(f"Updated current_timestamp to: {current_timestamp}")
     else:
         logging.warning("Timestamp not found in sync data")
     if 'is_playing' in data:
@@ -91,19 +122,17 @@ def handle_sync(data):
     last_update_time = time.time()
     emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
 
-@socketio.on('request_sync')
-def handle_request_sync():
-    global current_timestamp, is_playing, last_update_time
-    logging.debug("Sync request received")
-    emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing})
 
 @socketio.on('timestamp')
 def handle_timestamp(data):
     global current_timestamp, last_update_time
-    logging.debug(f"Timestamp received: {data}")
+    logging.debug(f"Timestamp received from client: {data}")
     if 'timestamp' in data:
         current_timestamp = data['timestamp']
-    last_update_time = time.time()
+        last_update_time = time.time()
+        logging.debug(f"Updated server timestamp to: {current_timestamp}")
+        emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)  # Ensure broadcast of the latest state
+
 
 @socketio.on('seek')
 def handle_seek(data):
@@ -111,16 +140,17 @@ def handle_seek(data):
     logging.debug(f"Seek event received with timestamp: {data['timestamp']}")
     if 'timestamp' in data:
         current_timestamp = data['timestamp']
+        last_update_time = time.time()
+        logging.debug(f"Updated current_timestamp to: {current_timestamp}")
     else:
         logging.warning("Timestamp not found in seek data")
-    last_update_time = time.time()
     emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
 
 @socketio.on('next_song')
 def handle_next_song():
     global current_song_index, queue, current_timestamp, is_playing, last_update_time
     logging.debug("Next song requested")
-    current_timestamp = 0
+    #current_timestamp = 0
     current_song_index += 1
     if current_song_index >= len(queue):
         current_song_index = 0
@@ -141,7 +171,7 @@ def handle_next_song():
 @socketio.on('select_song')
 def handle_select_song(data):
     global current_song_index, queue, current_timestamp, last_update_time, is_playing
-    current_timestamp = 0  # Change timestamp to 0 on song switch
+    # current_timestamp = 0  # Change timestamp to 0 on song switch
     logging.debug(f"Song selected: {data}")
     current_song_index = data['index']
     if current_song_index < len(queue):

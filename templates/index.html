@@ -11,27 +11,27 @@
 </head>
 <body>
     <div class="navbar bg-base-300">
-        <button class="btn btn-ghost text-xl">Product Name</button>
+        <button class="btn btn-ghost text-xl">Jukebox</button>
     </div>
     <div class="flex">
         <div class="w-2/3 h-96">
             <div class="p-2 flex flex-row">
                 <label class="grow input input-bordered flex items-center gap-2">
                     <input id="songurl" type="text" class="grow" placeholder="Paste the link to your favorite songs" />
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70"><path fill-rule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clip-rule="evenodd" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70"><path fill-rule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clip-rule="evenodd" /></svg>
                 </label>
-                <svg class="my-auto justify-center animate-spin -ml-1 ml-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <div id="loadingurl" class="hidden">
+                    <svg class="my-auto justify-center animate-spin -ml-1 ml-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
             </div>
             <div class="p-2">
-                <div class="cursor-pointer amplitude-next px-2 " onclick = "">
+                <div class="cursor-pointer amplitude-next px-2 " onclick = "nextSong()">
                     <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m6 6 12 12m3-6a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                     </svg>
-                      
-                    
                 </div>
             </div>
             <div class="overflow-x-auto">
@@ -61,7 +61,7 @@
             <div class="w-full flex flex-col px-10 pb-6 z-50">
                 <label class="label">
                     <span class="label-text" id="song-current-time">00:00:00</span>
-                    <input type="range" id="song-percentage-played" class="amplitude-song-slider mb-3 w-full" step="0" />
+                    <input type="range" id="song-percentage-played" class="amplitude-song-slider mb-3 w-full" step="0.1" />
                     <span class="label-text" id="song-total-time">00:00:00</span>
                 </label>
             </div>
@@ -90,240 +90,267 @@
 
     <script>
         var isUserSeeking = false;
-var socket = io.connect("jukebox.sebastianalexis.com", {
-    transports: ["polling"], // Use long polling
-    secure: true,
-});
-var audio = document.getElementById("songplayer");
-var slider = document.getElementById("song-percentage-played");
-var currentTimeLabel = document.getElementById("song-current-time");
-var totalTimeLabel = document.getElementById("song-total-time");
-var isPlaying = false;
-var syncInterval = 15000; // Sync every 15 seconds
-var syncThreshold = 5; // 5 seconds
-var current_timestamp = 0;
-
-socket.on("connect", function () {
-    console.log("Connected to server");
-    socket.emit("request_sync");
-});
-
-socket.on("play", function (data) {
-    console.log("Play event received from server", data);
-    audio.currentTime = data.timestamp;
-    if (!isPlaying) {
-        audio.play();
-        isPlaying = true;
-    }
-});
-
-socket.on("pause", function (data) {
-    console.log("Pause event received from server", data);
-    audio.currentTime = data.timestamp;
-    if (isPlaying) {
-        audio.pause();
-        isPlaying = false;
-    }
-});
-
-socket.on("sync", function (data) {
-    console.log("Sync event received from server", data);
-    current_timestamp = data.timestamp; // Store current timestamp
-    var currentTimeDiff = Math.abs(audio.currentTime - data.timestamp);
-    if (currentTimeDiff > syncThreshold) {
-        audio.currentTime = data.timestamp;
-    }
-    if (data.is_playing && !isPlaying) {
-        audio.play();
-        isPlaying = true;
-    } else if (!data.is_playing && isPlaying) {
-        audio.pause();
-        isPlaying = false;
-    }
-    slider.value = (audio.currentTime / audio.duration) * 100;
-    isUserSeeking = false; // Reset flag after sync
-});
-
-socket.on("next_song", function (data) {
-    console.log("Next song event received from server", data);
-    playSong(data.filename, data.title, data.artist, data.cover_art);
-});
-
-socket.on("song_selected", function (data) {
-    console.log("Song selection received from server", data);
-    playSong(data.filename, data.title, data.artist, data.cover_art);
-});
-
-function playpause() {
-    if (isPlaying) {
-        pausesong();
-    } else {
-        playsong();
-    }
-}
-
-function playsong() {
-    console.log("Playing song");
-    socket.emit("play", { timestamp: audio.currentTime });
-    audio.play();
-    isPlaying = true;
-}
-
-function pausesong() {
-    console.log("Pausing song");
-    if (isPlaying) {
-        isPlaying = false;
-        socket.emit("pause", { timestamp: audio.currentTime });
-        audio.pause();
-    }
-}
-
-$(document).keyup(function (event) {
-    if ($("#songurl").is(":focus") && event.key == "Enter") {
-        var songurl = $("#songurl").val();
-        console.log("Song URL:", songurl);
-        $.ajax({
-            type: "POST",
-            url: "/add_song",
-            data: JSON.stringify({ songurl: songurl }),
-            contentType: "application/json",
-            success: function (data) {
-                console.log("Song added to queue:", data);
-            },
-            error: function (error) {
-                console.error("Error adding song to queue:", error);
-            },
+        var socket = io.connect("jukebox.sebastianalexis.com", {
+            transports: ["polling"], // Use long polling
+            secure: true,
         });
-    }
-});
+        var audio = document.getElementById("songplayer");
+        audio.volume = 0.2;
+        var slider = document.getElementById("song-percentage-played");
+        var currentTimeLabel = document.getElementById("song-current-time");
+        var totalTimeLabel = document.getElementById("song-total-time");
+        var isPlaying = false;
+        var syncInterval = 1500; // Sync every 1.5 seconds
+        var current_timestamp = 0;
 
-// Update the slider's current time
-slider.addEventListener("input", function () {
-    var newTime = (slider.value / 100) * audio.duration;
-    console.log("Seeking to new time:", newTime);
-    isUserSeeking = true;
-    socket.emit("seek", { timestamp: newTime });
-});
-
-// Update current time and total time labels
-audio.addEventListener("timeupdate", function () {
-    currentTimeLabel.textContent = formatTime(audio.currentTime);
-});
-
-audio.addEventListener("loadedmetadata", function () {
-    totalTimeLabel.textContent = formatTime(audio.duration);
-});
-
-// Move to the next song when the current one ends
-audio.addEventListener('ended', function () {
-    console.log('The audio has finished playing.');
-    socket.emit('next_song');
-});
-
-// Format time in HH:MM:SS
-function formatTime(seconds) {
-    var h = Math.floor(seconds / 3600);
-    var m = Math.floor((seconds % 3600) / 60);
-    var s = Math.floor(seconds % 60);
-    return [h, m, s].map(v => v < 10 ? "0" + v : v).join(":");
-}
-
-// Send timestamp every 500 milliseconds while audio is playing
-setInterval(function () {
-    if (isPlaying && !isUserSeeking) { // Add !isUserSeeking condition
-        console.log("Sending timestamp to server", {
-            timestamp: audio.currentTime,
-        });
-        socket.emit("timestamp", { timestamp: audio.currentTime });
-    }
-}, 500);
-
-setInterval(function () {
-    console.log("Requesting sync from server");
-    socket.emit("request_sync");
-}, syncInterval);
-
-// Log connection issues
-socket.on("connect_error", function (error) {
-    console.error("Connection Error:", error);
-});
-
-socket.on("disconnect", function (reason) {
-    console.log("Disconnected:", reason);
-});
-
-// Fetch and display the music library
-function fetchLibrary() {
-    $.get("/library", function (data) {
-        var queuelist = $("#queuelist");
-        queuelist.empty();
-        data.forEach(function (song, index) {
-            console.log(`Adding song to queue: ${song.name} by ${song.artist} at index ${index}`);
-            queuelist.append(`
-                <tr id="queue-${index}">
-                    <td class="w-1/12">#${index + 1}</td>
-                    <td>
-                        <div class="flex items-center gap-3">
-                            <div class="avatar">
-                                <div class="mask mask-squircle w-12 h-12">
-                                    <img src="${song.cover_url}" alt="${song.name}" />
-                                </div>
-                            </div>
-                            <div>
-                                <div class="font-bold">${song.name}</div>
-                                <div class="text-sm opacity-50">${song.artist}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="flex">
-                            <button class="btn btn-success btn-sm" onclick="selectSong(${index})">
-                                Play
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `);
+        socket.on("connect", function () {
+            console.log("Connected to server");
+            socket.emit("request_sync");
         });
 
-        // Check if any songs are in the queue and log the result
-        if (data.length > 0) {
-            console.log(`Total songs in queue: ${data.length}`);
-            var firstSong = data[0];
-            playSong(firstSong.filename, firstSong.name, firstSong.artist, firstSong.cover_url);
-        } else {
-            console.log("No songs in queue.");
+        socket.on("play", function (data) {
+            console.log("Play event received from server", data);
+            if (!isPlaying) {
+                audio.play();
+                isPlaying = true;
+            }
+        });
+
+        socket.on("pause", function (data) {
+            console.log("Pause event received from server", data);
+            if (data.timestamp !== undefined) {
+                audio.currentTime = data.timestamp;
+                if (isPlaying) {
+                    audio.pause();
+                    isPlaying = false;
+                }
+            } else {
+                console.error("Pause event received without timestamp");
+            }
+        });
+
+        socket.on("sync", function (data) {
+            console.log("Sync event received from server", data);
+            if (data.timestamp !== undefined) {
+                current_timestamp = data.timestamp; // Store current timestamp
+                var currentTimeDiff = Math.abs(audio.currentTime - data.timestamp);
+
+                if (data.song) {
+                    playSong(data.song.filename, data.song.title, data.song.artist, data.song.cover_art);
+                }
+
+                if (data.is_playing && !isPlaying) {
+                    audio.currentTime = data.timestamp;
+                    audio.play();
+                    isPlaying = true;
+                } else if (!data.is_playing && isPlaying) {
+                    audio.currentTime = data.timestamp;
+                    audio.pause();
+                    isPlaying = false;
+                }
+
+                slider.value = (audio.currentTime / audio.duration) * 100;
+                isUserSeeking = false; // Reset flag after sync
+            } else {
+                console.error("Sync event received without timestamp");
+            }
+        });
+
+        socket.on("next_song", function (data) {
+            console.log("Next song event received from server", data);
+            current_timestamp = 0;
+            playSong(data.filename, data.title, data.artist, data.cover_art);
+            playsong();
+        });
+
+        socket.on("song_selected", function (data) {
+            console.log("Song selection received from server", data);
+            current_timestamp = 0;
+            playSong(data.filename, data.title, data.artist, data.cover_art);
+            playsong();
+        });
+
+        function playpause() {
+            if (isPlaying) {
+                pausesong();
+            } else {
+                playsong();
+            }
         }
-    });
-}
 
-// Play a song from the library
-function playSong(filename, title, artist, cover_art) {
-    console.log("Playing song:", filename, title, artist, cover_art);
-    var audio = document.getElementById("songplayer");
-    audio.src = `/music/${artist} - ${title}.mp3`;
-    console.log("Audio source:", audio.src);
-    $("#song-title").text(title);
-    $("#song-artist").text(artist);
-    $("#cover-art").attr("src", cover_art);
+        function playsong() {
+            console.log("Playing song");
+            socket.emit("play", { timestamp: audio.currentTime });
+            audio.play();
+            isPlaying = true;
+        }
 
-    audio.onloadedmetadata = function() {
-        socket.emit("seek", { timestamp: current_timestamp });
-        playsong();
-        isUserSeeking = false; // Reset flag after metadata is loaded
-    }
-}
+        function pausesong() {
+            console.log("Pausing song");
+            if (isPlaying) {
+                isPlaying = false;
+                socket.emit("pause", { timestamp: audio.currentTime });
+                audio.pause();
+            }
+        }
 
-// Select a song from the queue
-function selectSong(index) {
-    console.log("Selecting song with index:", index);
-    socket.emit("select_song", { index: index });
-}
+        $(document).keyup(function (event) {
+            if ($("#songurl").is(":focus") && event.key == "Enter") {
+                var songurl = $("#songurl").val();
+                console.log("Song URL:", songurl);
+                $("#loadingurl").removeClass("hidden");
+                $.ajax({
+                    type: "POST",
+                    url: "/add_song",
+                    data: JSON.stringify({ songurl: songurl }),
+                    contentType: "application/json",
+                    success: function (data) {
+                        console.log("Song added to queue:", data);
+                        $("#loadingurl").addClass("hidden");
+                    },
+                    error: function (error) {
+                        console.error("Error adding song to queue:", error);
+                        $("#loadingurl").addClass("hidden");
+                    },
+                });
+            }
+        });
 
-// Fetch the library on page load
-$(document).ready(function () {
-    fetchLibrary();
-});
-</script>
+        // Update the slider's current time
+        slider.addEventListener("input", function () {
+            var newTime = (slider.value / 100) * audio.duration;
+            currentTimeLabel.textContent = formatTime(newTime);
+        });
+
+        slider.addEventListener("change", function () {
+            var newTime = (slider.value / 100) * audio.duration;
+            console.log("Seeking to new time:", newTime);
+            audio.currentTime = newTime;
+            isUserSeeking = false;
+            socket.emit("seek", { timestamp: newTime });
+        });
+
+        audio.addEventListener('timeupdate', function () {
+            if (!isUserSeeking) {
+                slider.value = (audio.currentTime / audio.duration) * 100;
+                currentTimeLabel.textContent = formatTime(audio.currentTime);
+            }
+        });
+
+        audio.addEventListener('loadedmetadata', function () {
+            totalTimeLabel.textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('ended', function () {
+            console.log('The audio has finished playing.');
+            socket.emit('next_song');
+        });
+
+        // Format time in HH:MM:SS
+        function formatTime(seconds) {
+            var h = Math.floor(seconds / 3600);
+            var m = Math.floor((seconds % 3600) / 60);
+            var s = Math.floor(seconds % 60);
+            return [h, m, s].map(v => v < 10 ? "0" + v : v).join(":");
+        }
+
+        setInterval(function () {
+            console.log("Requesting sync from server");
+            socket.emit("request_sync");
+        }, syncInterval);
+
+        socket.on("connect_error", function (error) {
+            console.error("Connection Error:", error);
+        });
+
+        socket.on("disconnect", function (reason) {
+            console.log("Disconnected:", reason);
+            if (reason === 'transport error') {
+                // Handle specific transport error cases if needed
+            }
+        });
+
+        // Fetch and display the music library
+
+        function fetchLibrary() {
+            $.get("/library", function (data) {
+                var queuelist = $("#queuelist");
+                queuelist.empty();
+                data.forEach(function (song, index) {
+                    queuelist.append(`
+                        <tr id="queue-${index}">
+                            <td class="w-1/12">#${index + 1}</td>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="avatar">
+                                        <div class="mask mask-squircle w-12 h-12">
+                                            <img src="${song.cover_url}" alt="${song.name}" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold">${song.name}</div>
+                                        <div class="text-sm opacity-50">${song.artist}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="flex">
+                                    <button class="btn btn-success btn-sm" onclick="selectSong(${index})">
+                                        Play
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                // Optionally, ensure the current song remains unchanged
+                if (data.length > 0 && !isPlaying) {
+                    var firstSong = data[0];
+                    playSong(firstSong.filename, firstSong.name, firstSong.artist, firstSong.cover_url);
+                } else {
+                    console.log("No songs in queue or a song is currently playing.");
+                }
+            });
+        }
+
+        // Play a song from the library
+        function playSong(filename, title, artist, cover_art) {
+          console.log("Playing song:", filename, title, artist, cover_art);
+          var audio = document.getElementById("songplayer");
+          if (filename) {
+              audio.src = `/music/${filename}`;
+              $("#song-title").text(title);
+              $("#song-artist").text(artist);
+              $("#cover-art").attr("src", cover_art);
+          }
+          audio.currentTime = current_timestamp;
+      }
+
+        // // setInterval(function () {
+        //     console.log("Fetching library...")
+        //     fetchLibrary();
+        //     console.log("Fetched library")
+        // }, 10000);
+
+        // Select a song from the queue
+        function selectSong(index) {
+            console.log("Selecting song with index:", index);
+            socket.emit("select_song", { index: index });
+        }
+        // Fetch the library on page load
+        $(document).ready(function () {
+            fetchLibrary();
+            playsong();
+
+            // Set an interval to refresh the library metadata every x seconds
+            var refreshInterval = 30000; // Example: 30 seconds
+            setInterval(function() {
+              console.log("Refreshing library metadata...");
+              fetchLibrary();
+            }, refreshInterval);
+        });
+
+    </script>
 </body>
 </html>
