@@ -396,9 +396,16 @@
             }, refreshInterval);
         });
 
-        function shuffleSong(){
+        function shuffleQueue(){
             console.log("Shuffling Queue ");
-            $.ajax
+            $.ajax({
+                type: "GET",
+                url: "/shuffle",
+                success: function (data) {
+                    console.log("Queue shuffled");
+                    fetchLibrary();
+                },
+            });
         }
 
     </script>
