@@ -45,6 +45,7 @@ async def download_song(session, song):
     return song  # Return the modified song dictionary
 
 async def maindownload(playlist_url):
+    print("IT TURNED THIUS STTUPID THING ON!!!!!!!")
     def is_valid_spotify_url(url):
         pattern = r'^https:\/\/open\.spotify\.com\/playlist\/[a-zA-Z0-9]+(\?si=[a-zA-Z0-9]+)?$'
         return re.match(pattern, url) is not None

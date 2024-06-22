@@ -5,6 +5,7 @@ import time
 from music_downloader import maindownload
 import os
 import json
+import asyncio
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -16,7 +17,7 @@ queue = []
 current_song_index = 0
 last_update_time = time.time()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 LIBRARY_FOLDER = 'library'
 LIBDATA_FILE = 'libdata.json'
@@ -39,11 +40,11 @@ def get_library():
 
 @app.route('/add_song', methods=['POST'])
 def add_song():
-    url = request.form['songurl']
+    url = request.json['songurl']
     logging.debug(f"Adding song from URL: {url}")
-    maindownload(url)
+    asyncio.run(maindownload(url))
     time.sleep(5)
-    return open("incoming.spotdl").read()
+    return jsonify({'status': 'success'})
 
 @socketio.on('connect')
 def handle_connect():
@@ -55,21 +56,25 @@ def handle_connect():
 def handle_play(data):
     global is_playing, current_timestamp, last_update_time
     logging.debug("Play event received")
-    current_timestamp = data['timestamp']
+    if 'timestamp' in data:
+        current_timestamp = data['timestamp']
+    else:
+        logging.warning("Timestamp not found in play data")
     is_playing = True
     last_update_time = time.time()
     emit('play', {'timestamp': current_timestamp}, broadcast=True)
-
 
 @socketio.on('pause')
 def handle_pause(data):
     global is_playing, current_timestamp, last_update_time
     logging.debug("Pause event received")
-    current_timestamp = data['timestamp']
+    if 'timestamp' in data:
+        current_timestamp = data['timestamp']
+    else:
+        logging.warning("Timestamp not found in pause data")
     is_playing = False
     last_update_time = time.time()
     emit('pause', {'timestamp': current_timestamp}, broadcast=True)
-
 
 @socketio.on('sync')
 def handle_sync(data):
@@ -77,7 +82,12 @@ def handle_sync(data):
     logging.debug(f"Sync event received with data: {data}")
     if 'timestamp' in data:
         current_timestamp = data['timestamp']
-    is_playing = data['is_playing']
+    else:
+        logging.warning("Timestamp not found in sync data")
+    if 'is_playing' in data:
+        is_playing = data['is_playing']
+    else:
+        logging.warning("is_playing not found in sync data")
     last_update_time = time.time()
     emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
 
@@ -91,14 +101,18 @@ def handle_request_sync():
 def handle_timestamp(data):
     global current_timestamp, last_update_time
     logging.debug(f"Timestamp received: {data}")
-    current_timestamp = data.get('timestamp', current_timestamp)
+    if 'timestamp' in data:
+        current_timestamp = data['timestamp']
     last_update_time = time.time()
 
 @socketio.on('seek')
 def handle_seek(data):
     global current_timestamp, last_update_time
     logging.debug(f"Seek event received with timestamp: {data['timestamp']}")
-    current_timestamp = data['timestamp']
+    if 'timestamp' in data:
+        current_timestamp = data['timestamp']
+    else:
+        logging.warning("Timestamp not found in seek data")
     last_update_time = time.time()
     emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
 
@@ -112,7 +126,6 @@ def handle_next_song():
         current_song_index = 0
     if queue:
         next_song = queue[current_song_index]
-        current_timestamp = 0
         is_playing = True
         last_update_time = time.time()
         emit('next_song', {
@@ -128,11 +141,11 @@ def handle_next_song():
 @socketio.on('select_song')
 def handle_select_song(data):
     global current_song_index, queue, current_timestamp, last_update_time, is_playing
+    current_timestamp = 0  # Change timestamp to 0 on song switch
     logging.debug(f"Song selected: {data}")
     current_song_index = data['index']
     if current_song_index < len(queue):
         selected_song = queue[current_song_index]
-        current_timestamp = 0  # Change timestamp to 0 on song switch
         is_playing = True
         last_update_time = time.time()
         emit('song_selected', {
