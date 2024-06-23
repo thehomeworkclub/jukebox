@@ -32,6 +32,9 @@ def decode_unicode_escape(s):
     return bytes(s, 'utf-8').decode('unicode_escape').encode('latin1').decode('utf-8')
 
 async def download_song(session, song, library_path="./library"):
+    def decode_unicode_escape(s):
+        return s.encode('latin1').decode('unicode_escape')
+
     url = song['url']
     cmd = ['python3', '-m', 'spotdl', 'download', url, '--output', library_path]
     process = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -42,9 +45,16 @@ async def download_song(session, song, library_path="./library"):
         song_name = decode_unicode_escape(song['name'])
         song_artist = decode_unicode_escape(song['artist'])
         song_artists = ", ".join([decode_unicode_escape(artist) for artist in song['artists']])
-        estimated_path = os.path.join(library_path, f"{song_artists} - {song_name}.mp3")
-        if os.path.exists(estimated_path):
-            song['path'] = estimated_path
+        
+        # Create two possible paths
+        estimated_path_all_artists = os.path.join(library_path, f"{song_artists} - {song_name}.mp3")
+        estimated_path_first_artist = os.path.join(library_path, f"{song_artist} - {song_name}.mp3")
+
+        # Check which path exists and use it
+        if os.path.exists(estimated_path_all_artists):
+            song['path'] = estimated_path_all_artists
+        elif os.path.exists(estimated_path_first_artist):
+            song['path'] = estimated_path_first_artist
         else:
             print(f"Failed to find the path for {song['name']} by {song['artists']}")
     else:

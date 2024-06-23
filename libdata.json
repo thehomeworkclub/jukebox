@@ -1,43 +1,5 @@
 [
     {
-        "name": "Just the Two of Us (feat. Bill Withers) - Edit",
-        "artists": [
-            "Grover Washington, Jr.",
-            "Bill Withers"
-        ],
-        "artist": "Grover Washington, Jr.",
-        "genres": [
-            "soul jazz"
-        ],
-        "disc_number": 1,
-        "disc_count": 1,
-        "album_name": "Lean on Me: The Best of Bill Withers",
-        "album_artist": "Bill Withers",
-        "album_type": "compilation",
-        "duration": 237,
-        "year": "1994",
-        "date": "1994-08-09",
-        "track_number": 18,
-        "tracks_count": 18,
-        "song_id": "2tH28YyKYOldxhuBHoI79M",
-        "explicit": false,
-        "publisher": "Legacy Recordings",
-        "url": "https://open.spotify.com/track/2tH28YyKYOldxhuBHoI79M",
-        "isrc": "USEE10250233",
-        "cover_url": "https://i.scdn.co/image/ab67616d0000b273f8560af696925c50080dcc35",
-        "copyright_text": "This compilation (P) 1994 Sony Music Entertainment",
-        "download_url": null,
-        "lyrics": null,
-        "popularity": 62,
-        "album_id": "0XmgSYx9bj4sqpcXVgKs2C",
-        "list_name": "JukeboxTest",
-        "list_url": "https://open.spotify.com/playlist/7IXTedx5tRGadIjaCThQUK?si=aae46eeb39f74d17",
-        "list_position": 1,
-        "list_length": 8,
-        "artist_id": "05YVYeV4HxYp5rrWalvuE1",
-        "path": "library\\Grover Washington, Jr. - Just the Two of Us (feat. Bill Withers) - Edit.mp3"
-    },
-    {
         "name": "Escape (The Pina Colada Song)",
         "artists": [
             "Rupert Holmes"

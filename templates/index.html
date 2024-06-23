@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Jukebox</title>
+    <!-- VERSION X12:51 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <link
       href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css"
@@ -19,11 +20,26 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="/jbtheme" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   </head>
   <body>
+    <dialog id="joinModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Join in</h3>
+        <p class="py-4">Click Below to join the Session</p>
+        <div class="modal-action">
+          <form method="dialog">
+            <!-- if there is a button in form, it will close the modal -->
+            <button class="btn" onclick="playpause()">Join</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
     <div class="navbar bg-base-300">
-      <button class="btn btn-ghost text-xl">Jukebox</button>
+      <button class="btn btn-ghost text-xl">Jukebox</button> <span class="text-sm" style="margin-right: 10px" id="serverversion">2.01</span></a>
+      <div class="badge badge-neutral badge-sm">Alpha</div>&nbsp;
     </div>
     <div class="flex">
       <div class="w-2/3 h-96">
@@ -220,23 +236,35 @@
           <div
             class="cursor-pointer amplitude-play-pause w-24 h-24 rounded-full bg-white border border-play-pause-light-border shadow-xl flex items-center justify-center dark:bg-play-pause-dark-background dark:border-play-pause-dark-border"
             onclick="playpause()"
-          >
-            <svg
-              id="play-icon"
-              class="ml-[10px]"
-              width="31"
-              height="37"
-              viewBox="0 0 31 37"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
             >
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M29.6901 16.6608L4.00209 0.747111C2.12875 -0.476923 0.599998 0.421814 0.599998 2.75545V33.643C0.599998 35.9728 2.12747 36.8805 4.00209 35.6514L29.6901 19.7402C29.6901 19.7402 30.6043 19.0973 30.6043 18.2012C30.6043 17.3024 29.6901 16.6608 29.6901 16.6608Z"
-                class="fill-slate-500 dark:fill-slate-400"
-              />
-            </svg>
+            <div id="loadingsong" class="text-black">
+              <svg
+                class="my-auto justify-center animate-spin text-4xl h-8 w-8 text-black"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </div>
+            <span id="play-icon" class="material-symbols-outlined text-black hidden text-5xl">
+            play_arrow
+            </span>
+            <span id="pause-icon" class="material-symbols-outlined text-black text-5xl hidden">
+              pause
+            </span>
           </div>
 
           <div class="cursor-pointer amplitude-next px-2" onclick="nextSong()">
@@ -398,18 +426,25 @@
       });
 
       function playpause() {
-        // if (!hasPlayed) {
-        //     requestInitialSync();
-        //     hasPlayed = true;
-        //     playsong(true);
-        // } else {
-        if (isPlaying) {
-          pausesong();
+        document.getElementById("loadingsong").classList.add("hidden")
+        if (!hasPlayed) {
+            requestInitialSync();
+            hasPlayed = true;
+            playsong(true);
+            
         } else {
-          playsong();
+          if (isPlaying) {
+            pausesong();
+            document.getElementById("play-icon").classList.remove("hidden");
+            document.getElementById("pause-icon").classList.add("hidden");
+          } else {
+            playsong();
+            document.getElementById("play-icon").classList.add("hidden");
+            document.getElementById("pause-icon").classList.remove("hidden");
+
+          }
         }
       }
-      // }
 
       function playsong(skipTimestamp) {
         console.log("Playing song");
@@ -417,6 +452,8 @@
           socket.emit("play", { timestamp: audio.currentTime });
         }
         audio.play();
+        document.getElementById("play-icon").classList.add("hidden");
+        document.getElementById("pause-icon").classList.remove("hidden");
         isPlaying = true;
       }
 
@@ -426,6 +463,8 @@
           isPlaying = false;
           socket.emit("pause", { timestamp: audio.currentTime });
           audio.pause();
+          document.getElementById("play-icon").classList.remove("hidden");
+          document.getElementById("pause-icon").classList.add("hidden");
         }
       }
 
@@ -634,6 +673,7 @@
       // Fetch the library on page load
       $(document).ready(function () {
         fetchLibrary();
+        joinModal.showModal();
         if (isPlaying) {
             console.log("Resuming playback...");
           //playsong();
