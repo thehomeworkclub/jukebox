@@ -1,0 +1,76 @@
+[
+    {
+        "name": "Strawberry Road",
+        "artists": [
+            "dark cat"
+        ],
+        "artist": "dark cat",
+        "genres": [
+            "kawaii future bass"
+        ],
+        "disc_number": 1,
+        "disc_count": 1,
+        "album_name": "Strawberry Road",
+        "album_artist": "dark cat",
+        "album_type": "single",
+        "duration": 187,
+        "year": "2019",
+        "date": "2019-05-08",
+        "track_number": 1,
+        "tracks_count": 1,
+        "song_id": "3WfLeljrBDFW5QoT9n3xSu",
+        "explicit": false,
+        "publisher": "Snafu Records",
+        "url": "https://open.spotify.com/track/3WfLeljrBDFW5QoT9n3xSu",
+        "isrc": "QZES81986501",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b27302deacfa5ff9d433fb4a766b",
+        "copyright_text": "2019 Snafu Records",
+        "download_url": null,
+        "lyrics": null,
+        "popularity": 25,
+        "album_id": "4DXmJ9hWl5SPZKIfi5MfWs",
+        "list_name": "ONE",
+        "list_url": "https://open.spotify.com/playlist/3fkHf37ZqteTT1557fa9Hr?si=cf1265e1c8ca48b5",
+        "list_position": 1,
+        "list_length": 2,
+        "artist_id": "0CW3aaY5gtWFStE6Vj6ZHI",
+        "path": "library\\dark cat - Strawberry Road.mp3"
+    },
+    {
+        "name": "Warmer",
+        "artists": [
+            "OVSKY"
+        ],
+        "artist": "OVSKY",
+        "genres": [
+            "future bounce"
+        ],
+        "disc_number": 1,
+        "disc_count": 1,
+        "album_name": "Warmer",
+        "album_artist": "OVSKY",
+        "album_type": "single",
+        "duration": 171,
+        "year": "2022",
+        "date": "2022-01-11",
+        "track_number": 1,
+        "tracks_count": 1,
+        "song_id": "3J2KzuvIYC9Ao489gZSsIM",
+        "explicit": false,
+        "publisher": "Monstercat",
+        "url": "https://open.spotify.com/track/3J2KzuvIYC9Ao489gZSsIM",
+        "isrc": "CA6D22100860",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b27339b6e5876197ef7bae703d2a",
+        "copyright_text": "2022 Monstercat",
+        "download_url": null,
+        "lyrics": null,
+        "popularity": 26,
+        "album_id": "05PEAJk2RAUtqaAbixRJAG",
+        "list_name": "ONE",
+        "list_url": "https://open.spotify.com/playlist/3fkHf37ZqteTT1557fa9Hr?si=cf1265e1c8ca48b5",
+        "list_position": 2,
+        "list_length": 2,
+        "artist_id": "6hs7DlQVJTvFgN7DyzkdnX",
+        "path": "library\\OVSKY - Warmer.mp3"
+    }
+]

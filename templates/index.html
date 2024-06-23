@@ -238,10 +238,10 @@
       </div>
     </div>
     <div class="toast hidden" id="toasterror">
-        <div class="alert alert-error">
-          <span class="font-bold" id="toasterrormessage"></span>
-        </div>
+      <div class="alert alert-error">
+        <span class="font-bold" id="toasterrormessage"></span>
       </div>
+    </div>
     <script>
       var isUserSeeking = false;
       var socket = io.connect(window.location.href, {
@@ -433,6 +433,17 @@
 
       setInterval(emitTimestamp, 2000);
 
+      setInterval(function () {
+        $.ajax({
+          type: "GET",
+          url: "/update_queue",
+          success: function (data) {
+            console.log("Queue updated");
+            fetchLibrary();
+          },
+        });
+      }, 10000);
+
       socket.on("connect_error", function (error) {
         console.error("Connection Error:", error);
       });
@@ -500,15 +511,16 @@
       }
 
       // Play a song from the library
-      function playSong(filename, title, artist, cover_art) {
-        console.log("Playing song:", filename, title, artist, cover_art);
+      function playSong(filePath, title, artist, cover_art) {
+        console.log("Playing song:", filePath, title, artist, cover_art);
         var audio = document.getElementById("songplayer");
-        if (filename) {
-          // Encode filename correctly
-          let encodedFilename = encodeURIComponent(
-            filename.replace(/\\/g, "/")
-          );
-          audio.src = `/music/${encodedFilename}`;
+        if (filePath) {
+          let encodedPath = filePath;
+          // Check if the file path contains non-ASCII characters
+          if (/[^\x00-\x7F]/.test(filePath)) {
+            encodedPath = btoa(unescape(encodeURIComponent(filePath))); // Base64 encode the path
+          }
+          audio.src = `/music/${encodedPath}`;
           $("#song-title").text(title);
           $("#song-artist").text(artist);
           $("#cover-art").attr("src", cover_art);

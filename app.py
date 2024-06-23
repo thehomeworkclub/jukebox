@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, jsonify, request, send_file
+from flask import Flask, render_template, send_from_directory, jsonify, request, send_file, abort
 from flask_socketio import SocketIO, emit
 import logging
 import time
@@ -8,6 +8,7 @@ import json
 import random
 import asyncio
 import urllib.parse
+import base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -31,10 +32,21 @@ def index():
 
 @app.route('/music/<path:name>')
 def music(name):
-    name = urllib.parse.unquote(name)  
-    name = name.replace('/', os.sep)
-    logging.debug(f"Sending music file: {name}")
-    return send_from_directory(LIBRARY_FOLDER, name, as_attachment=True)
+    try:
+        # First, try to handle the path as a plain path
+        decoded_path = urllib.parse.unquote(name)  # Decode URL-encoded characters
+        if os.path.exists(os.path.join(LIBRARY_FOLDER, decoded_path)):
+            file_path = decoded_path
+        else:
+            # If the plain path does not exist, treat it as a Base64-encoded path
+            file_path = base64.urlsafe_b64decode(name.encode('utf-8')).decode('utf-8')
+        directory = os.path.dirname(file_path)
+        file_name = os.path.basename(file_path)
+        logging.debug(f"Sending music file: {file_name} from {directory}")
+        return send_from_directory(directory, file_name, as_attachment=True)
+    except Exception as e:
+        logging.error(f"Error handling path: {e}")
+        abort(404)
 
 @app.route('/clear_library')
 def clear_library():
@@ -59,6 +71,16 @@ def add_song():
     asyncio.run(maindownload(url))
     time.sleep(5)
     return jsonify({'status': 'success'})
+
+@app.route('/update_queue')
+def update_queue():
+    global queue
+    with open(LIBDATA_FILE, 'r', encoding='utf-8') as file:
+        libdata = json.load(file)
+    existing_urls = {song['url'] for song in queue}
+    new_songs = [song for song in libdata if song['url'] not in existing_urls]
+    queue.extend(new_songs)
+    return jsonify({'status': 'success', 'new_queue': queue})
 
 @app.route('/jbtheme')
 def jbtheme():
@@ -220,8 +242,15 @@ def handle_select_song(data):
 
 def load_library():
     global queue
-    with open(LIBDATA_FILE, 'r', encoding='utf-8') as file:
-        queue = json.load(file)
+    if not os.path.exists(LIBRARY_FOLDER):
+        os.makedirs(LIBRARY_FOLDER)
+    if not os.path.exists(LIBDATA_FILE):
+        with open(LIBDATA_FILE, 'x', encoding='utf-8') as file:
+            file.write('[]')
+        queue = []
+    else:
+        with open(LIBDATA_FILE, 'r', encoding='utf-8') as file:
+            queue = json.load(file)
 
 @app.route('/shuffle')
 def shuffle():
