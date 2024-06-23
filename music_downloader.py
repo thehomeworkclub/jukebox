@@ -41,7 +41,8 @@ async def download_song(session, song, library_path="./library"):
         print(f"Downloaded {song['name']} by {song['artists']}")
         song_name = decode_unicode_escape(song['name'])
         song_artist = decode_unicode_escape(song['artist'])
-        estimated_path = os.path.join(library_path, f"{song_artist} - {song_name}.mp3")
+        song_artists = ", ".join([decode_unicode_escape(artist) for artist in song['artists']])
+        estimated_path = os.path.join(library_path, f"{song_artists} - {song_name}.mp3")
         if os.path.exists(estimated_path):
             song['path'] = estimated_path
         else:
