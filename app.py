@@ -7,6 +7,7 @@ import os
 import json
 import random
 import asyncio
+import urllib.parse
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -28,14 +29,17 @@ LIBDATA_FILE = 'libdata.json'
 def index():
     return render_template('index.html')
 
-@app.route('/music/<name>')
+@app.route('/music/<path:name>')
 def music(name):
+    name = urllib.parse.unquote(name)  # Decode URL-encoded characters
+    name = name.replace('/', os.sep)  # Convert URL path to OS path
     logging.debug(f"Sending music file: {name}")
-    return send_from_directory(LIBRARY_FOLDER, name)
+    return send_from_directory(LIBRARY_FOLDER, name, as_attachment=True)
+
 
 @app.route('/library')
 def get_library():
-    with open(LIBDATA_FILE, 'r') as file:
+    with open(LIBDATA_FILE, 'r', encoding='utf-8') as file:
         data = json.load(file)
     logging.debug(f"Library data: {data}")
     return jsonify(data)
@@ -50,7 +54,7 @@ def add_song():
 
 @app.route('/jbtheme')
 def jbtheme():
-    send_file('jukeboxtheme.css')
+    return send_file('jukeboxtheme.css')
 
 def get_current_song():
     if queue and 0 <= current_song_index < len(queue):
@@ -75,7 +79,6 @@ def handle_connect():
         })
     else:
         emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing})
-
 
 @socketio.on('play')
 def handle_play(data):
@@ -103,12 +106,10 @@ def handle_pause(data):
     last_update_time = time.time()
     emit('pause', {'timestamp': current_timestamp}, broadcast=True)
 
-
 @socketio.on('request_sync')
 def handle_request_sync():
     global current_timestamp, is_playing, last_update_time
     logging.debug("Sync request received")
-    print ("ASIJOSIDJIOSJDIOASDISDJ" + str(current_timestamp))
     emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing})
 
 @socketio.on('sync')
@@ -127,7 +128,6 @@ def handle_sync(data):
     last_update_time = time.time()
     emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
 
-
 @socketio.on('timestamp')
 def handle_timestamp(data):
     global current_timestamp, last_update_time
@@ -137,7 +137,6 @@ def handle_timestamp(data):
         last_update_time = time.time()
         logging.debug(f"Updated server timestamp to: {current_timestamp}")
         emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)  # Ensure broadcast of the latest state
-
 
 @socketio.on('seek')
 def handle_seek(data):
@@ -155,7 +154,6 @@ def handle_seek(data):
 def handle_next_song():
     global current_song_index, queue, current_timestamp, is_playing, last_update_time
     logging.debug("Next song requested")
-    #current_timestamp = 0
     current_song_index += 1
     if current_song_index >= len(queue):
         current_song_index = 0
@@ -173,10 +171,30 @@ def handle_next_song():
         is_playing = False
         emit('pause', {'timestamp': 0}, broadcast=True)
 
+@socketio.on('prev_song')
+def handle_prev_song():
+    global current_song_index, queue, current_timestamp, is_playing, last_update_time
+    logging.debug("Previous song requested")
+    current_song_index -= 1
+    if current_song_index < 0:
+        current_song_index = len(queue) - 1
+    if queue:
+        prev_song = queue[current_song_index]
+        is_playing = True
+        last_update_time = time.time()
+        emit('prev_song', {
+            'filename': prev_song['path'],
+            'title': prev_song['name'],
+            'artist': prev_song['artist'],
+            'cover_art': prev_song['cover_url']
+        }, broadcast=True)
+    else:
+        is_playing = False
+        emit('pause', {'timestamp': 0}, broadcast=True)
+
 @socketio.on('select_song')
 def handle_select_song(data):
     global current_song_index, queue, current_timestamp, last_update_time, is_playing
-    # current_timestamp = 0  # Change timestamp to 0 on song switch
     logging.debug(f"Song selected: {data}")
     current_song_index = data['index']
     if current_song_index < len(queue):
@@ -194,7 +212,7 @@ def handle_select_song(data):
 
 def load_library():
     global queue
-    with open(LIBDATA_FILE, 'r') as file:
+    with open(LIBDATA_FILE, 'r', encoding='utf-8') as file:
         queue = json.load(file)
 
 @app.route('/shuffle')
@@ -202,7 +220,6 @@ def shuffle():
     global queue
     random.shuffle(queue)
     return jsonify({'status': 'success'})
-
 
 if __name__ == '__main__':
     load_library()

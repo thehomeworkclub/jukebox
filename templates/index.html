@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <title>Spotify Jam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css" />
@@ -77,7 +77,7 @@
                     <span class="label-text" id="song-total-time">00:00:00</span>
                 </label>
             </div>
-            <div class="h-control-panel px-10 rounded-b-xl bg-control-panel-light-background border-t border-gray-200 flex items-center justify-between z-50 dark:bg-control-panel-dark-background dark:border-gray-900">
+            <div class="h-control-panel px-10 rounded-b-xl bg-control-panel-light-background border-t border-gray-200 flex items-center justify-between z-50 dark:bg-control-panel-dark-background dark:border-gray-900" onclick="prevSong()">
                 <div class="cursor-pointer amplitude-prev px-2">
                     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M26 7C26 5.76393 24.5889 5.05836 23.6 5.8L11.6 14.8C10.8 15.4 10.8 16.6 11.6 17.2L23.6 26.2C24.5889 26.9416 26 26.2361 26 25V7Z" fill="#94A3B8" stroke="#94A3B8" stroke-width="2" stroke-linejoin="round" />
@@ -346,16 +346,23 @@
 
         // Play a song from the library
         function playSong(filename, title, artist, cover_art) {
-          console.log("Playing song:", filename, title, artist, cover_art);
-          var audio = document.getElementById("songplayer");
-          if (filename) {
-              audio.src = `/music/${filename}`;
-              $("#song-title").text(title);
-              $("#song-artist").text(artist);
-              $("#cover-art").attr("src", cover_art);
-          }
-          audio.currentTime = current_timestamp;
-      }
+            console.log("Playing song:", filename, title, artist, cover_art);
+            var audio = document.getElementById("songplayer");
+            if (filename) {
+                // Encode filename correctly
+                let encodedFilename = encodeURIComponent(filename.replace(/\\/g, '/'));
+                audio.src = `/music/${encodedFilename}`;
+                $("#song-title").text(title);
+                $("#song-artist").text(artist);
+                $("#cover-art").attr("src", cover_art);
+            }
+            audio.currentTime = current_timestamp;
+        }
+
+
+
+
+
 
         // // setInterval(function () {
         //     console.log("Fetching library...")
@@ -367,6 +374,16 @@
         function selectSong(index) {
             console.log("Selecting song with index:", index);
             socket.emit("select_song", { index: index });
+        }
+
+        function nextSong() {
+            console.log("Moving to song # ");
+            socket.emit("next_song");
+        }
+
+        function prevSong() {
+            console.log("Moving to song # ");
+            socket.emit("prev_song");
         }
 
         function requestInitialSync() {

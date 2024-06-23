@@ -4,6 +4,7 @@ import re
 import json
 import asyncio
 import aiohttp
+from pathlib import Path
 
 def fetch_metadata(url, save_file="incoming.spotdl"):
     result = subprocess.run(['python', '-m', 'spotdl', 'save', url, '--save-file', save_file], capture_output=True, text=True)
@@ -13,41 +14,46 @@ def fetch_metadata(url, save_file="incoming.spotdl"):
     return save_file
 
 def filter_new_songs(incoming_file, libdata_file="libdata.json"):
-    with open(incoming_file, 'r') as file:
+    with open(incoming_file, 'r', encoding='utf-8') as file:
         incoming_data = json.load(file)
 
     if os.path.exists(libdata_file):
-        with open(libdata_file, 'r') as file:
+        with open(libdata_file, 'r', encoding='utf-8') as file:
             libdata = json.load(file)
     else:
         libdata = []
 
     existing_urls = {song['url'] for song in libdata}
-    print(existing_urls)
     new_songs = [song for song in incoming_data if song['url'] not in existing_urls]
 
     return new_songs
 
-async def download_song(session, song):
+def decode_unicode_escape(s):
+    return bytes(s, 'utf-8').decode('unicode_escape').encode('latin1').decode('utf-8')
+
+async def download_song(session, song, library_path="./library"):
     url = song['url']
-    lib = "./library"
-    cmd = ['python', '-m', 'spotdl', 'download', url, '--output', lib]
+    cmd = ['python', '-m', 'spotdl', 'download', url, '--output', library_path]
     process = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = await process.communicate()
 
     if process.returncode == 0:
         print(f"Downloaded {song['name']} by {song['artists']}")
-        song['path'] = os.path.join(f"{song['artist']} - {song['name']}.mp3")  # Save the path in the song dictionary
-        print(song['path'])
+        song_name = decode_unicode_escape(song['name'])
+        song_artist = decode_unicode_escape(song['artist'])
+        estimated_path = Path(library_path) / f"{song_artist} - {song_name}.mp3"
+        if estimated_path.exists():
+            song['path'] = str(estimated_path)
+        else:
+            print(f"Failed to find the path for {song['name']} by {song['artists']}")
     else:
         print(f"Failed to download {song['name']} by {song['artists']}: {stderr.decode()}")
 
-    return song  # Return the modified song dictionary
+    return song
 
 async def maindownload(playlist_url):
-    print("IT TURNED THIUS STTUPID THING ON!!!!!!!")
     def is_valid_spotify_url(url):
-        pattern = r'^https:\/\/open\.spotify\.com\/playlist\/[a-zA-Z0-9]+(\?si=[a-zA-Z0-9]+)?$'
+        pattern = r'^https:\/\/open\.spotify\.com'
         return re.match(pattern, url) is not None
 
     if not is_valid_spotify_url(playlist_url):
@@ -65,34 +71,30 @@ async def maindownload(playlist_url):
         new_song_urls = [song['url'] for song in new_songs]
         print(new_song_urls)
         for song in new_songs:
+            song['name'] = decode_unicode_escape(song['name'])
+            song['artist'] = decode_unicode_escape(song['artist'])
             print(f"{song['name']} by {song['artists']}")
 
         libdata_file = "libdata.json"
         if os.path.exists(libdata_file):
-            with open(libdata_file, 'r') as file:
+            with open(libdata_file, 'r', encoding='utf-8') as file:
                 libdata = json.load(file)
         else:
             libdata = []
 
         async with aiohttp.ClientSession() as session:
-            tasks = [download_song(session, song) for song in new_songs]
+            tasks = [download_song(session, song, "./library") for song in new_songs]
             downloaded_songs = await asyncio.gather(*tasks)
 
         libdata.extend(downloaded_songs)
 
-        with open(libdata_file, 'w') as file:
-            json.dump(libdata, file, indent=4)
+        with open(libdata_file, 'w', encoding='utf-8') as file:
+            json.dump(libdata, file, indent=4, ensure_ascii=False)
 
         os.remove(incoming_file)
-        
-        async with aiohttp.ClientSession() as session:
-
-            tasks = [download_song(session, song) for song in new_songs]
-
-            await asyncio.gather(*tasks)
     else:
         print("No new songs found.")
 
 if __name__ == "__main__":
-    playlist_url = "https://open.spotify.com/playlist/7IXTedx5tRGadIjaCThQUK?si=ada181a04b15462c"
+    playlist_url = "https://open.spotify.com/track/5Y0hBfi0F1uGvuKpIXvr2C?si=78f9c4ec73c24d6b"
     asyncio.run(maindownload(playlist_url))
