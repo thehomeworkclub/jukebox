@@ -251,12 +251,24 @@ def handle_select_song(data):
         selected_song = queue[current_song_index]
         is_playing = True
         last_update_time = time.time()
-        emit('song_selected', {
-            'filename': selected_song['path'],
-            'title': selected_song['name'],
-            'artist': selected_song['artist'],
-            'cover_art': selected_song['cover_url']
-        }, broadcast=True)
+        try:
+            emit('song_selected', {
+                'filename': selected_song['path'],
+                'title': selected_song['name'],
+                'artist': selected_song['artist'],
+                'cover_art': selected_song['cover_url']
+            }, broadcast=True)
+        except Exception as e:
+            logging.error(f"Error selecting song: {e}")
+            get_dir = os.listdir(LIBRARY_FOLDER)
+            for file in get_dir:
+                if selected_song['name'] in file:
+                    emit('song_selected', {
+                        'filename': os.path.join(LIBRARY_FOLDER, file),
+                        'title': selected_song['name'],
+                        'artist': selected_song['artist'],
+                        'cover_art': selected_song['cover_url']
+                    }, broadcast=True)                    
     else:
         logging.error("Selected song index out of range.")
 

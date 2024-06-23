@@ -28,7 +28,7 @@
     <dialog id="joinModal" class="modal">
       <div class="modal-box">
         <h3 class="font-bold text-lg">Join in</h3>
-        <p class="py-4">Click Below to join the Session</p>
+        <p class="py-4">Click Below to Join the Session</p>
         <div class="modal-action">
           <form method="dialog">
             <!-- if there is a button in form, it will close the modal -->
@@ -38,8 +38,8 @@
       </div>
     </dialog>
     <div class="navbar bg-base-300">
-      <button class="btn btn-ghost text-xl">Jukebox</button> <span class="text-sm" style="margin-right: 10px" id="serverversion">2.01</span></a>
-      <div class="badge badge-neutral badge-sm">Alpha</div>&nbsp;
+      <button class="btn btn-ghost text-xl">Jukebox</button> <span class="text-sm" style="margin-right: 10px" id="serverversion">1.5</span></a>
+      <div class="badge badge-neutral badge-sm">Beta</div>&nbsp;
     </div>
     <div class="flex">
       <div class="w-2/3 h-96">
@@ -49,7 +49,7 @@
               id="songurl"
               type="text"
               class="grow"
-              placeholder="Paste the link to your favorite songs then click enter/return"
+              placeholder="Paste a SPOTIFY link to your favorite song, playlist, album then click enter/return"
             />
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -64,7 +64,8 @@
               />
             </svg>
           </label>
-          <div id="loadingurl" class="hidden">
+          <div id="loadingurl" class="hidden justify-center items-center btn btn-active btn-neutral no-animation no-hover" style="margin-left:30px;">
+            Processing song. Please wait...
             <svg
               class="my-auto justify-center animate-spin -ml-1 ml-3 h-5 w-5 text-white"
               xmlns="http://www.w3.org/2000/svg"
