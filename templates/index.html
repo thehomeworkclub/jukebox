@@ -362,11 +362,13 @@
 
             if (data.action === 'seek') {
                 audio.currentTime = data.timestamp;
-            } else if (data.is_playing && !isPlaying) {
+            } 
+            else if (data.is_playing && !isPlaying) {
                 audio.currentTime = data.timestamp;
                 audio.play();
                 isPlaying = true;
-            } else if (!data.is_playing && isPlaying) {
+            }
+             else if (!data.is_playing && isPlaying) {
                 audio.currentTime = data.timestamp;
                 audio.pause();
                 isPlaying = false;
@@ -633,7 +635,8 @@
       $(document).ready(function () {
         fetchLibrary();
         if (isPlaying) {
-          playsong();
+            console.log("Resuming playback...");
+          //playsong();
         }
 
         // Set an interval to refresh the library metadata every x seconds
