@@ -11,13 +11,6 @@ A collaborative jukebox web application where users can add songs to a shared pl
 - Adjust volume
 - Clear the queue
 
-## Technologies Used
-
-- HTML
-- CSS (DaisyUI, TailwindCSS)
-- JavaScript (jQuery)
-- Socket.IO
-
 ## Getting Started
 
 Follow these instructions to set up and run the project on your local machine.
@@ -26,6 +19,8 @@ Follow these instructions to set up and run the project on your local machine.
 
 - Node.js
 - npm (Node Package Manager)
+- ffmpeg
+- [SpotDL](https://github.com/spotDL/spotify-downloader)
 
 ### Installation
 
