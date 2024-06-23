@@ -7,7 +7,7 @@ import aiohttp
 from pathlib import Path
 
 def fetch_metadata(url, save_file="incoming.spotdl"):
-    result = subprocess.run(['python', '-m', 'spotdl', 'save', url, '--save-file', save_file], capture_output=True, text=True)
+    result = subprocess.run(['python3', '-m', 'spotdl', 'save', url, '--save-file', save_file], capture_output=True, text=True)
     if result.returncode != 0:
         print(f"An error occurred while fetching metadata: {result.stderr}")
         return None
@@ -33,7 +33,7 @@ def decode_unicode_escape(s):
 
 async def download_song(session, song, library_path="./library"):
     url = song['url']
-    cmd = ['python', '-m', 'spotdl', 'download', url, '--output', library_path]
+    cmd = ['python3', '-m', 'spotdl', 'download', url, '--output', library_path]
     process = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = await process.communicate()
 
@@ -41,9 +41,9 @@ async def download_song(session, song, library_path="./library"):
         print(f"Downloaded {song['name']} by {song['artists']}")
         song_name = decode_unicode_escape(song['name'])
         song_artist = decode_unicode_escape(song['artist'])
-        estimated_path = Path(library_path) / f"{song_artist} - {song_name}.mp3"
-        if estimated_path.exists():
-            song['path'] = str(estimated_path)
+        estimated_path = os.path.join(library_path, f"{song_artist} - {song_name}.mp3")
+        if os.path.exists(estimated_path):
+            song['path'] = estimated_path
         else:
             print(f"Failed to find the path for {song['name']} by {song['artists']}")
     else:
@@ -98,3 +98,4 @@ async def maindownload(playlist_url):
 if __name__ == "__main__":
     playlist_url = "https://open.spotify.com/track/5Y0hBfi0F1uGvuKpIXvr2C?si=78f9c4ec73c24d6b"
     asyncio.run(maindownload(playlist_url))
+
