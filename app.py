@@ -12,7 +12,8 @@ import base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+socketio = SocketIO(app, cors_allowed_origins="*",
+                    logger=True, engineio_logger=True)
 
 global current_timestamp, is_playing, queue, current_song_index, last_update_time
 current_timestamp = 0
@@ -26,27 +27,25 @@ logging.basicConfig(level=logging.DEBUG)
 LIBRARY_FOLDER = 'library'
 LIBDATA_FILE = 'libdata.json'
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/music/<path:name>')
-def music(name):
+
+@app.route('/music/<encoded_path>')
+def music(encoded_path):
     try:
-        # First, try to handle the path as a plain path
-        decoded_path = urllib.parse.unquote(name)  # Decode URL-encoded characters
-        if os.path.exists(os.path.join(LIBRARY_FOLDER, decoded_path)):
-            file_path = decoded_path
-        else:
-            # If the plain path does not exist, treat it as a Base64-encoded path
-            file_path = base64.urlsafe_b64decode(name.encode('utf-8')).decode('utf-8')
-        directory = os.path.dirname(file_path)
-        file_name = os.path.basename(file_path)
+        decoded_path = base64.urlsafe_b64decode(
+            encoded_path.encode('utf-8')).decode('utf-8')
+        directory = os.path.dirname(decoded_path)
+        file_name = os.path.basename(decoded_path)
         logging.debug(f"Sending music file: {file_name} from {directory}")
         return send_from_directory(directory, file_name, as_attachment=True)
     except Exception as e:
-        logging.error(f"Error handling path: {e}")
+        logging.error(f"Error decoding path: {e}")
         abort(404)
+
 
 @app.route('/clear_library')
 def clear_library():
@@ -59,10 +58,12 @@ def clear_library():
     queue = []
     return jsonify({'status': 'success'})
 
+
 @app.route('/library')
 def get_library():
     global queue
     return jsonify(queue)
+
 
 @app.route('/add_song', methods=['POST'])
 def add_song():
@@ -71,6 +72,7 @@ def add_song():
     asyncio.run(maindownload(url))
     time.sleep(5)
     return jsonify({'status': 'success'})
+
 
 @app.route('/update_queue')
 def update_queue():
@@ -82,14 +84,17 @@ def update_queue():
     queue.extend(new_songs)
     return jsonify({'status': 'success', 'new_queue': queue})
 
+
 @app.route('/jbtheme')
 def jbtheme():
     return send_file('jukeboxtheme.css')
+
 
 def get_current_song():
     if queue and 0 <= current_song_index < len(queue):
         return queue[current_song_index]
     return None
+
 
 @socketio.on('connect')
 def handle_connect():
@@ -108,7 +113,9 @@ def handle_connect():
             }
         })
     else:
-        emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing})
+        emit('sync', {'timestamp': current_timestamp,
+             'is_playing': is_playing})
+
 
 @socketio.on('play')
 def handle_play(data):
@@ -123,6 +130,7 @@ def handle_play(data):
     last_update_time = time.time()
     emit('play', {'timestamp': current_timestamp}, broadcast=True)
 
+
 @socketio.on('pause')
 def handle_pause(data):
     global is_playing, current_timestamp, last_update_time
@@ -136,11 +144,13 @@ def handle_pause(data):
     last_update_time = time.time()
     emit('pause', {'timestamp': current_timestamp}, broadcast=True)
 
+
 @socketio.on('request_sync')
 def handle_request_sync():
     global current_timestamp, is_playing, last_update_time
     logging.debug("Sync request received")
     emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing})
+
 
 @socketio.on('sync')
 def handle_sync(data):
@@ -156,7 +166,9 @@ def handle_sync(data):
     else:
         logging.warning("is_playing not found in sync data")
     last_update_time = time.time()
-    emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
+    emit('sync', {'timestamp': current_timestamp,
+         'is_playing': is_playing}, broadcast=True)
+
 
 @socketio.on('timestamp')
 def handle_timestamp(data):
@@ -166,7 +178,10 @@ def handle_timestamp(data):
         current_timestamp = data['timestamp']
         last_update_time = time.time()
         logging.debug(f"Updated server timestamp to: {current_timestamp}")
-        emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)  # Ensure broadcast of the latest state
+        # Ensure broadcast of the latest state
+        emit('sync', {'timestamp': current_timestamp,
+             'is_playing': is_playing}, broadcast=True)
+
 
 @socketio.on('seek')
 def handle_seek(data):
@@ -178,7 +193,9 @@ def handle_seek(data):
         logging.debug(f"Updated current_timestamp to: {current_timestamp}")
     else:
         logging.warning("Timestamp not found in seek data")
-    emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing}, broadcast=True)
+    emit('sync', {'timestamp': current_timestamp,
+         'is_playing': is_playing}, broadcast=True)
+
 
 @socketio.on('next_song')
 def handle_next_song():
@@ -201,6 +218,7 @@ def handle_next_song():
         is_playing = False
         emit('pause', {'timestamp': 0}, broadcast=True)
 
+
 @socketio.on('prev_song')
 def handle_prev_song():
     global current_song_index, queue, current_timestamp, is_playing, last_update_time
@@ -222,6 +240,7 @@ def handle_prev_song():
         is_playing = False
         emit('pause', {'timestamp': 0}, broadcast=True)
 
+
 @socketio.on('select_song')
 def handle_select_song(data):
     global current_song_index, queue, current_timestamp, last_update_time, is_playing
@@ -240,6 +259,7 @@ def handle_select_song(data):
     else:
         logging.error("Selected song index out of range.")
 
+
 def load_library():
     global queue
     if not os.path.exists(LIBRARY_FOLDER):
@@ -252,11 +272,13 @@ def load_library():
         with open(LIBDATA_FILE, 'r', encoding='utf-8') as file:
             queue = json.load(file)
 
+
 @app.route('/shuffle')
 def shuffle():
     global queue
     random.shuffle(queue)
     return jsonify({'status': 'success', 'new_queue': queue})
+
 
 if __name__ == '__main__':
     load_library()

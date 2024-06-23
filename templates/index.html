@@ -74,9 +74,8 @@
         <div class="flex">
           <div class="p-2">
             <div
-              class="btn cursor-pointer amplitude-next px-2"
-              onclick="clearQueue()"
-              disabled
+              class="btn btn-error cursor-pointer amplitude-next px-2"
+              onclick="clearQueueModal.showModal()"
             >
               <span>
                 <svg
@@ -98,6 +97,21 @@
               </span>
               Clear Queue
             </div>
+            <dialog id="clearQueueModal" class="modal">
+              <div class="modal-box">
+                <h3 class="font-bold text-lg">Warning!</h3>
+                <p class="py-4">
+                  Are you sure you want to clear? This Action is irreverible.
+                </p>
+                <div class="modal-action">
+                  <form method="dialog">
+                    <!-- if there is a button in form, it will close the modal -->
+                    <button class="btn" onclick="clearQueue()">Yes</button>
+                    <button class="btn">No</button>
+                  </form>
+                </div>
+              </div>
+            </dialog>
             <div
               class="btn btn-success cursor-pointer amplitude-next px-2"
               onclick="shuffleQueue()"
@@ -144,14 +158,18 @@
         </div>
         <div class="w-full flex flex-col px-10 pb-6 z-50">
           <label class="label">
-            <span class="label-text" id="song-current-time">00:00:00</span>
+            <span class="label-text pr-4 text-lg" id="song-current-time"
+              >00:00:00</span
+            >
             <input
               type="range"
               id="song-percentage-played"
               class="range amplitude-song-slider mb-3 w-full"
               step="0.1"
             />
-            <span class="label-text" id="song-total-time">00:00:00</span>
+            <span class="label-text pl-4 text-lg" id="song-total-time"
+              >00:00:00</span
+            >
           </label>
         </div>
         <div
@@ -378,7 +396,12 @@
             contentType: "application/json",
             success: function (data) {
               console.log("Song added to queue:", data);
+              toastinfomessage.innerHTML = "Song added to queue";
+              toastinfo.classList.remove("hidden");
               $("#loadingurl").addClass("hidden");
+              setTimeout(function () {
+                toastinfo.classList.add("hidden");
+              }, 7000);
             },
             error: function (error) {
               console.error("Error adding song to queue:", error);
@@ -515,11 +538,7 @@
         console.log("Playing song:", filePath, title, artist, cover_art);
         var audio = document.getElementById("songplayer");
         if (filePath) {
-          let encodedPath = filePath;
-          // Check if the file path contains non-ASCII characters
-          if (/[^\x00-\x7F]/.test(filePath)) {
-            encodedPath = btoa(unescape(encodeURIComponent(filePath))); // Base64 encode the path
-          }
+          let encodedPath = btoa(unescape(encodeURIComponent(filePath))); // Base64 encode the path
           audio.src = `/music/${encodedPath}`;
           $("#song-title").text(title);
           $("#song-artist").text(artist);
@@ -535,6 +554,17 @@
       // }, 10000);
 
       // Select a song from the queue
+      function clearQueue() {
+        console.log("Clearing Queue ");
+        $.ajax({
+          type: "GET",
+          url: "/clear_library",
+          success: function (data) {
+            console.log("Queue cleared");
+            fetchLibrary();
+          },
+        });
+      }
       function selectSong(index) {
         console.log("Selecting song with index:", index);
         socket.emit("select_song", { index: index });
