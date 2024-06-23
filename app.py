@@ -218,7 +218,7 @@ def load_library():
 @app.route('/shuffle')
 def shuffle():
     global queue
-    random.shuffle(queue)
+    queue = random.shuffle(queue)
     return jsonify({'status': 'success'})
 
 if __name__ == '__main__':
