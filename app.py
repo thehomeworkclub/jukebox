@@ -31,18 +31,26 @@ def index():
 
 @app.route('/music/<path:name>')
 def music(name):
-    name = urllib.parse.unquote(name)  # Decode URL-encoded characters
-    name = name.replace('/', os.sep)  # Convert URL path to OS path
+    name = urllib.parse.unquote(name)  
+    name = name.replace('/', os.sep)
     logging.debug(f"Sending music file: {name}")
     return send_from_directory(LIBRARY_FOLDER, name, as_attachment=True)
 
+@app.route('/clear_library')
+def clear_library():
+    global queue
+    os.remove(LIBDATA_FILE)
+    file_list = os.listdir(LIBRARY_FOLDER)
+    for file_name in file_list:
+        file_path = os.path.join(LIBRARY_FOLDER, file_name)
+        os.remove(file_path)
+    queue = []
+    return jsonify({'status': 'success'})
 
 @app.route('/library')
 def get_library():
-    with open(LIBDATA_FILE, 'r', encoding='utf-8') as file:
-        data = json.load(file)
-    logging.debug(f"Library data: {data}")
-    return jsonify(data)
+    global queue
+    return jsonify(queue)
 
 @app.route('/add_song', methods=['POST'])
 def add_song():
@@ -218,8 +226,8 @@ def load_library():
 @app.route('/shuffle')
 def shuffle():
     global queue
-    queue = random.shuffle(queue)
-    return jsonify({'status': 'success'})
+    random.shuffle(queue)
+    return jsonify({'status': 'success', 'new_queue': queue})
 
 if __name__ == '__main__':
     load_library()
