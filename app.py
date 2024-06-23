@@ -36,8 +36,7 @@ def index():
 @app.route('/music/<encoded_path>')
 def music(encoded_path):
     try:
-        decoded_path = base64.urlsafe_b64decode(
-            encoded_path.encode('utf-8')).decode('utf-8')
+        decoded_path = base64.urlsafe_b64decode(encoded_path.encode('utf-8')).decode('utf-8')
         directory = os.path.dirname(decoded_path)
         file_name = os.path.basename(decoded_path)
         logging.debug(f"Sending music file: {file_name} from {directory}")
@@ -185,16 +184,18 @@ def handle_timestamp(data):
 
 @socketio.on('seek')
 def handle_seek(data):
-    global current_timestamp, last_update_time
+    global current_timestamp, last_update_time, is_playing
     logging.debug(f"Seek event received with timestamp: {data['timestamp']}")
     if 'timestamp' in data:
         current_timestamp = data['timestamp']
         last_update_time = time.time()
         logging.debug(f"Updated current_timestamp to: {current_timestamp}")
+        emit('sync', {'timestamp': current_timestamp, 'is_playing': is_playing, 'action': 'seek'}, broadcast=True)
     else:
         logging.warning("Timestamp not found in seek data")
-    emit('sync', {'timestamp': current_timestamp,
-         'is_playing': is_playing}, broadcast=True)
+
+
+
 
 
 @socketio.on('next_song')

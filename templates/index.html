@@ -306,37 +306,56 @@
         }
       });
 
-      socket.on("sync", function (data) {
+    // Update the slider's current time
+// Update the slider's current time
+        slider.addEventListener("input", function () {
+            var newTime = (slider.value / 100) * audio.duration;
+            currentTimeLabel.textContent = formatTime(newTime);
+            console.log("Seeking to awesome new time:", newTime);
+            audio.currentTime = newTime;
+            isUserSeeking = true; // User is actively seeking
+            socket.emit("seek", { timestamp: newTime });
+        });
+
+        slider.addEventListener("change", function () {
+            var newTime = (slider.value / 100) * audio.duration;
+            console.log("Seeking to new time:", newTime);
+            audio.currentTime = newTime;
+            isUserSeeking = false;
+            socket.emit("seek", { timestamp: newTime });
+        });
+
+
+    // Handle incoming 'sync' events to update the playback position
+    socket.on("sync", function (data) {
         console.log("Sync event received from server", data);
         if (data.timestamp !== undefined) {
-          current_timestamp = data.timestamp; // Store current timestamp
-          var currentTimeDiff = Math.abs(audio.currentTime - data.timestamp);
+            current_timestamp = data.timestamp; // Store current timestamp
 
-          if (data.song) {
-            playSong(
-              data.song.filename,
-              data.song.title,
-              data.song.artist,
-              data.song.cover_art
-            );
-          }
+            if (data.song) {
+                playSong(data.song.filename, data.song.title, data.song.artist, data.song.cover_art);
+            }
 
-          if (data.is_playing && !isPlaying) {
-            audio.currentTime = data.timestamp;
-            audio.play();
-            isPlaying = true;
-          } else if (!data.is_playing && isPlaying) {
-            audio.currentTime = data.timestamp;
-            audio.pause();
-            isPlaying = false;
-          }
+            if (data.action === 'seek') {
+                audio.currentTime = data.timestamp;
+            } else if (data.is_playing && !isPlaying) {
+                audio.currentTime = data.timestamp;
+                audio.play();
+                isPlaying = true;
+            } else if (!data.is_playing && isPlaying) {
+                audio.currentTime = data.timestamp;
+                audio.pause();
+                isPlaying = false;
+            }
 
-          slider.value = (audio.currentTime / audio.duration) * 100;
-          isUserSeeking = false; // Reset flag after sync
+            slider.value = (audio.currentTime / audio.duration) * 100;
         } else {
-          console.error("Sync event received without timestamp");
+            console.error("Sync event received without timestamp");
         }
-      });
+    });
+
+
+
 
       socket.on("next_song", function (data) {
         console.log("Next song event received from server", data);
@@ -411,19 +430,7 @@
         }
       });
 
-      // Update the slider's current time
-      slider.addEventListener("input", function () {
-        var newTime = (slider.value / 100) * audio.duration;
-        currentTimeLabel.textContent = formatTime(newTime);
-      });
 
-      slider.addEventListener("change", function () {
-        var newTime = (slider.value / 100) * audio.duration;
-        console.log("Seeking to new time:", newTime);
-        audio.currentTime = newTime;
-        isUserSeeking = false;
-        socket.emit("seek", { timestamp: newTime });
-      });
 
       audio.addEventListener("timeupdate", function () {
         if (!isUserSeeking) {
@@ -453,6 +460,13 @@
         console.log("Requesting sync from server");
         socket.emit("request_sync");
       }, syncInterval);
+
+      setInterval(function () {
+    if (isPlaying) {
+        socket.emit('timestamp', { timestamp: audio.currentTime });
+    }
+    }, 1000); // Sync every second
+
 
       setInterval(emitTimestamp, 2000);
 
@@ -535,17 +549,17 @@
 
       // Play a song from the library
       function playSong(filePath, title, artist, cover_art) {
-        console.log("Playing song:", filePath, title, artist, cover_art);
-        var audio = document.getElementById("songplayer");
-        if (filePath) {
-          let encodedPath = btoa(unescape(encodeURIComponent(filePath))); // Base64 encode the path
-          audio.src = `/music/${encodedPath}`;
-          $("#song-title").text(title);
-          $("#song-artist").text(artist);
-          $("#cover-art").attr("src", cover_art);
+            console.log("Playing song:", filePath, title, artist, cover_art);
+            var audio = document.getElementById("songplayer");
+            if (filePath) {
+                let encodedPath = btoa(unescape(encodeURIComponent(filePath))); // Base64 encode the path
+                audio.src = `/music/${encodedPath}`;
+                $("#song-title").text(title);
+                $("#song-artist").text(artist);
+                $("#cover-art").attr("src", cover_art);
+            }
+            audio.currentTime = current_timestamp;
         }
-        audio.currentTime = current_timestamp;
-      }
 
       // // setInterval(function () {
       //     console.log("Fetching library...")
