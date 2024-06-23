@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Spotify Jam</title>
+    <title>Jukebox</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <link
       href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css"
@@ -33,7 +33,7 @@
               id="songurl"
               type="text"
               class="grow"
-              placeholder="Paste the link to your favorite songs"
+              placeholder="Paste the link to your favorite songs then click enter/return"
             />
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -122,6 +122,18 @@
               Shuffle
             </div>
           </div>
+          <!-- create a volume slider -->
+          <div class="p-2">
+            <label class="label">
+              <span class="font-bold font-sm" style="margin-right:20px;">Volume</span>
+              <input
+                type="range"
+                class="range"
+                value="50"
+                onchange="audio.volume = this.value / 100"
+              />
+            </label>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="table">
@@ -166,14 +178,19 @@
               id="song-percentage-played"
               class="range amplitude-song-slider mb-3 w-full"
               step="0.1"
+              min="0"
+              value="0"
             />
             <span class="label-text pl-4 text-lg" id="song-total-time"
               >00:00:00</span
             >
           </label>
         </div>
+        <div class="border-t border-gray-200 dark:border-gray-900" style="margin-bottom:20px;">
+        
+        </div>
         <div
-          class="h-control-panel px-10 rounded-b-xl bg-control-panel-light-background border-t border-gray-200 flex items-center justify-between z-50 dark:bg-control-panel-dark-background dark:border-gray-900"
+          class="h-control-panel px-10 rounded-b-xl bg-control-panel-light-background flex items-center justify-between z-50 dark:bg-control-panel-dark-background"
         >
           <div class="cursor-pointer amplitude-prev px-2">
             <svg
@@ -247,6 +264,13 @@
             </svg>
           </div>
         </div>
+        <footer style="margin-top:50px;">
+          <div class="w-full">
+              <span style="margin:20px;">Made with ❤️ by The Homework Club (Homework Club © 2024) <br>
+              <div class="divider">
+              </div>
+          </div>
+        </footer>
         <!-- <div class="hidden top-14 w-full absolute ml-auto mr-auto left-0 right-0 text-center max-w-lg h-72 rounded-full bg-highlight blur-2xl dark:block"></div> -->
       </div>
     </div>
@@ -267,7 +291,7 @@
         secure: true,
       });
       var audio = document.getElementById("songplayer");
-      audio.volume = 0.2;
+      audio.volume = 0.5;
       var slider = document.getElementById("song-percentage-played");
       var currentTimeLabel = document.getElementById("song-current-time");
       var totalTimeLabel = document.getElementById("song-total-time");

@@ -548,5 +548,40 @@
         "list_length": null,
         "artist_id": "1LpsDU7OK8dBh49zmydzft",
         "path": "library\\Syrex - Counting Stars (Nightcore).mp3"
+    },
+    {
+        "name": "Every Second",
+        "artists": [
+            "Mina Okabe"
+        ],
+        "artist": "Mina Okabe",
+        "genres": [],
+        "disc_number": 1,
+        "disc_count": 1,
+        "album_name": "Every Second",
+        "album_artist": "Mina Okabe",
+        "album_type": "single",
+        "duration": 182,
+        "year": 2021,
+        "date": "2021-05-21",
+        "track_number": 1,
+        "tracks_count": 1,
+        "song_id": "6dquCx5KAW5jCgGgoTlghL",
+        "explicit": false,
+        "publisher": "a Copenhagen Records release",
+        "url": "https://open.spotify.com/track/6dquCx5KAW5jCgGgoTlghL",
+        "isrc": "DKUM72100269",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b273fc03b97c30ce11e30e65e389",
+        "copyright_text": "© 2021 Universal Music (Denmark) A/S",
+        "download_url": null,
+        "lyrics": null,
+        "popularity": 52,
+        "album_id": "4VLxnKcNSnVyxw4ByPzQVs",
+        "list_name": null,
+        "list_url": null,
+        "list_position": null,
+        "list_length": null,
+        "artist_id": "5BS8KSKJPeLeXfABQx0bXl",
+        "path": "library\\Mina Okabe - Every Second.mp3"
     }
 ]
