@@ -482,6 +482,7 @@
             success: function (data) {
               console.log("Song added to queue:", data);
               toastinfomessage.innerHTML = "Song added to queue";
+              fetchLibrary();
               toastinfo.classList.remove("hidden");
               $("#loadingurl").addClass("hidden");
               setTimeout(function () {

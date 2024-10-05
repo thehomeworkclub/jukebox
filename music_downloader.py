@@ -60,6 +60,10 @@ def load_libdata(libdata_file):
 def save_libdata(libdata, libdata_file):
     with open(libdata_file, 'w', encoding='utf-8') as file:
         json.dump(libdata, file, indent=4, ensure_ascii=False)
+        
+def is_valid_spotify_url(url):
+    pattern = r'^https:\/\/open\.spotify\.com'
+    return re.match(pattern, url) is not None
 
 async def maindownload(playlist_url, batch_size=5):
     if not is_valid_spotify_url(playlist_url):
