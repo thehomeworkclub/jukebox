@@ -152,5 +152,42 @@
         "list_length": null,
         "artist_id": "6M2wZ9GZgrQXHCFfjv46we",
         "path": "./library\\Dua Lipa, Creepy Nuts - Illusion - Creepy Nuts Remix.mp3"
+    },
+    {
+        "name": "supїdo",
+        "artists": [
+            "фрози"
+        ],
+        "artist": "фрози",
+        "genres": [
+            "sped up"
+        ],
+        "disc_number": 1,
+        "disc_count": 1,
+        "album_name": "supїdo",
+        "album_artist": "фрози",
+        "album_type": "single",
+        "duration": 110,
+        "year": 2023,
+        "date": "2023-08-11",
+        "track_number": 1,
+        "tracks_count": 1,
+        "song_id": "0iTrYSvCB4NDvQR3DsFt6T",
+        "explicit": false,
+        "publisher": "фрози",
+        "url": "https://open.spotify.com/track/0iTrYSvCB4NDvQR3DsFt6T",
+        "isrc": "QZPLS2305099",
+        "cover_url": "https://i.scdn.co/image/ab67616d0000b273695075e7662ec749af4f2185",
+        "copyright_text": "2023 фрози, under exclusive license to Kurate Music Ltd.",
+        "download_url": null,
+        "lyrics": null,
+        "popularity": 69,
+        "album_id": "7IdfiBZAcyN5EhM4a8t6X2",
+        "list_name": null,
+        "list_url": null,
+        "list_position": null,
+        "list_length": null,
+        "artist_id": "3IIpbS5XHnLSdXTP4c1YN2",
+        "path": "./library\\фрози - supїdo.mp3"
     }
 ]
