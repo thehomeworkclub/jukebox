@@ -292,6 +292,13 @@ def shuffle():
     random.shuffle(queue)
     return jsonify({'status': 'success', 'new_queue': queue})
 
+@app.route('/getusers')
+def getusers():
+    try:
+        return str(len(socketio.server.manager.rooms['/']-2))
+    except:
+        return "0";
+
 
 if __name__ == '__main__':
     load_library()
