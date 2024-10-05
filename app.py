@@ -292,14 +292,14 @@ def shuffle():
     random.shuffle(queue)
     return jsonify({'status': 'success', 'new_queue': queue})
 
-@app.route('/getusers')
-def getusers():
-    try:
-        return str(len(socketio.server.manager.rooms['/']-2))
-    except:
-        return "0";
-
-
+@app.route('/listeners')
+def get_listeners():
+    room = '/'  # Default namespace
+    participants = socketio.server.manager.rooms.get(room, {})
+    count = len(participants)
+    if count >= 2: 
+        count = count - 1
+    return jsonify({'listeners': count})
 if __name__ == '__main__':
     load_library()
     socketio.run(app, host='0.0.0.0', port=5135)
