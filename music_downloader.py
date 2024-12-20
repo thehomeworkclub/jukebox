@@ -7,10 +7,12 @@ import aiohttp
 from pathlib import Path
 
 def fetch_metadata(url, save_file="incoming.spotdl"):
-    result = subprocess.run(['python3', '-m', 'spotdl', 'save', url, '--save-file', save_file], capture_output=True, text=True)
+    print("Fetching metadata for the playlist. This may take a while depending on the size of the playlist.")
+    result = subprocess.run(['spotdl', 'save', url, '--save-file', save_file], capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"An error occurred while fetching metadata: {result.stderr}")
+        print(f"An error occurred while fetching metadata: {result}")
         return None
+    print("Metadata fetched successfully")
     return save_file
 
 def filter_new_songs(incoming_file, libdata_file="libdata.json"):
@@ -23,14 +25,16 @@ def filter_new_songs(incoming_file, libdata_file="libdata.json"):
         libdata = []
     existing_urls = {song['url'] for song in libdata}
     new_songs = [song for song in incoming_data if song['url'] not in existing_urls]
+    print(f"Found {len(new_songs)} new songs")
     return new_songs
 
 def decode_unicode_escape(s):
     return bytes(s, 'utf-8').decode('unicode_escape').encode('latin1').decode('utf-8')
 
 async def download_song(session, song, library_path="./library"):
+    print(f"Downloading {song['name']} by {song['artists']}")
     url = song['url']
-    cmd = ['python3', '-m', 'spotdl', 'download', url, '--output', library_path]
+    cmd = ['spotdl', 'download', url, '--output', library_path]
     process = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = await process.communicate()
     if process.returncode == 0:
