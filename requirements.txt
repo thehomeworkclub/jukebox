@@ -1,5 +1,5 @@
-flask
 pygments
+flask
 flask_socketio
 spotlib
 asyncio
