@@ -1,3 +1,6 @@
+import gettext
+gettext.translation = lambda *args, **kwargs: gettext.NullTranslations()
+
 from flask import Flask, render_template, send_from_directory, jsonify, request, send_file, abort
 from flask_socketio import SocketIO, emit
 import logging
@@ -9,6 +12,8 @@ import random
 import asyncio
 import urllib.parse
 import base64
+from spotdl.utils.ffmpeg import download_ffmpeg
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -28,6 +33,8 @@ LIBRARY_FOLDER = 'library'
 LIBDATA_FILE = 'libdata.json'
 
 
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -37,8 +44,11 @@ def index():
 def music(encoded_path):
     try:
         decoded_path = base64.urlsafe_b64decode(encoded_path.encode('utf-8')).decode('utf-8')
+        logging.debug(f"Decoded path: {decoded_path}")
         directory = os.path.dirname(decoded_path)
+        logging.debug(f"Directory: {directory}")
         file_name = os.path.basename(decoded_path)
+        logging.debug(f"File name: {file_name}")
         logging.debug(f"Sending music file: {file_name} from {directory}")
         return send_from_directory(directory, file_name, as_attachment=True)
     except Exception as e:
@@ -301,5 +311,8 @@ def get_listeners():
         count = count - 1
     return jsonify({'listeners': count})
 if __name__ == '__main__':
+    logging.debug("Starting the application")
+    download_ffmpeg()
     load_library()
     socketio.run(app, host='0.0.0.0', port=5135)
+

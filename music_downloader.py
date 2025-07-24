@@ -1,19 +1,47 @@
+import logging
 import subprocess
 import os
 import re
 import json
 import asyncio
 import aiohttp
+import sys
+from spotdl import Spotdl
+from spotdl.types.song import Song
 from pathlib import Path
+from dataclasses import asdict
 
-def fetch_metadata(url, save_file="incoming.spotdl"):
-    print("Fetching metadata for the playlist. This may take a while depending on the size of the playlist.")
-    result = subprocess.run(['spotdl', 'save', url, '--save-file', save_file], capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"An error occurred while fetching metadata: {result}")
+import dotenv
+dotenv.load_dotenv()
+downloader_settings = {"output": "./library"}
+spotdl_instance = Spotdl(os.getenv("SPOTIFY_CLIENT_ID"), os.getenv("SPOTIFY_CLIENT_SECRET"), downloader_settings=downloader_settings)
+
+
+
+
+def fetch_metadata(url: str, save_file: str="incoming.spotdl") -> str | None:
+    try:
+
+        # Search for song(s) – returns list of Song objects
+        songs = spotdl_instance.search([url])
+
+        if not songs:
+            print("No songs found.")
+            return None
+
+        # Convert each Song dataclass to a dictionary using asdict
+        serialized = [asdict(song) for song in songs]
+
+        # Write to .spotdl file (which is just a JSON list)
+        with open(save_file, 'w', encoding='utf-8') as f:
+            json.dump(serialized, f, ensure_ascii=False, indent=2)
+
+        print("Metadata fetched successfully")
+        return save_file
+
+    except Exception as e:
+        print(f"An error occurred while fetching metadata: {e}")
         return None
-    print("Metadata fetched successfully")
-    return save_file
 
 def filter_new_songs(incoming_file, libdata_file="libdata.json"):
     with open(incoming_file, 'r', encoding='utf-8') as file:
@@ -31,27 +59,25 @@ def filter_new_songs(incoming_file, libdata_file="libdata.json"):
 def decode_unicode_escape(s):
     return bytes(s, 'utf-8').decode('unicode_escape').encode('latin1').decode('utf-8')
 
-async def download_song(session, song, library_path="./library"):
+def download_song_sync(song: dict, library_path="./library") -> dict:
     print(f"Downloading {song['name']} by {song['artists']}")
     url = song['url']
-    cmd = ['spotdl', 'download', url, '--output', library_path]
-    process = await asyncio.create_subprocess_exec(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = await process.communicate()
-    if process.returncode == 0:
-        print(f"Downloaded {song['name']} by {song['artists']}")
-        song_name = decode_unicode_escape(song['name'])
-        song_artist = decode_unicode_escape(song['artist'])
-        song_artists = ", ".join([decode_unicode_escape(artist) for artist in song['artists']])
-        estimated_path_all_artists = os.path.join(library_path, f"{song_artists} - {song_name}.mp3")
-        estimated_path_first_artist = os.path.join(library_path, f"{song_artist} - {song_name}.mp3")
-        if os.path.exists(estimated_path_all_artists):
-            song['path'] = estimated_path_all_artists
-        elif os.path.exists(estimated_path_first_artist):
-            song['path'] = estimated_path_first_artist
+
+    try:
+        # Search song metadata
+        songs = spotdl_instance.search([url])
+        if not songs:
+            print(f"No song found for {url}")
+            return song
+        results = spotdl_instance.download_songs(songs)
+        if results:
+            song['path'] = str(results[0].file_path)
+            print(f"Downloaded to {song['path']}")
         else:
-            print(f"Failed to find the path for {song['name']} by {song['artists']}")
-    else:
-        print(f"Failed to download {song['name']} by {song['artists']}: {stderr.decode()}")
+            print(f"Failed to download {song['name']}")
+
+    except Exception as e:
+        print(f"Error downloading {song['name']}: {e}")
     return song
 
 def load_libdata(libdata_file):
@@ -84,18 +110,17 @@ async def maindownload(playlist_url, batch_size=5):
             song['artist'] = decode_unicode_escape(song['artist'])
             print(f"{song['name']} by {song['artists']}")
         libdata = load_libdata("libdata.json")
-        async with aiohttp.ClientSession() as session:
-            for i in range(0, len(new_songs), batch_size):
-                batch = new_songs[i:i + batch_size]
-                tasks = [download_song(session, song, "./library") for song in batch]
-                downloaded_songs = await asyncio.gather(*tasks)
-                libdata.extend(downloaded_songs)
+        downloaded_songs = []
+        for song in new_songs:
+            downloaded_song = download_song_sync(song, "./library")
+            downloaded_songs.append(downloaded_song)
+            logging.info(f"Downloaded song: {downloaded_song}")
+        libdata.extend(downloaded_songs)
         save_libdata(libdata, "libdata.json")
         if os.path.exists(incoming_file):
             os.remove(incoming_file)
     else:
         print("No new songs found.")
-
 if __name__ == "__main__":
     playlist_url = "https://open.spotify.com/track/5Y0hBfi0F1uGvuKpIXvr2C?si=78f9c4ec73c24d6b"
     asyncio.run(maindownload(playlist_url))
