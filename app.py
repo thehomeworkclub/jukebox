@@ -44,13 +44,15 @@ def index():
 def music(encoded_path):
     try:
         decoded_path = base64.urlsafe_b64decode(encoded_path.encode('utf-8')).decode('utf-8')
+        logging.debug(f"Directory Path: {os.path.abspath(LIBRARY_FOLDER)}")
         logging.debug(f"Decoded path: {decoded_path}")
         directory = os.path.dirname(decoded_path)
         logging.debug(f"Directory: {directory}")
         file_name = os.path.basename(decoded_path)
         logging.debug(f"File name: {file_name}")
-        logging.debug(f"Sending music file: {file_name} from {directory}")
-        return send_from_directory(directory, file_name, as_attachment=True)
+        logging.debug(f"Sending music file: \"{file_name}\" from \"{directory}\"")
+        logging.debug(f"Current application root path: {app.root_path}")
+        return send_from_directory(os.path.abspath(LIBRARY_FOLDER), file_name, as_attachment=True)
     except Exception as e:
         logging.error(f"Error decoding path: {e}")
         abort(404)

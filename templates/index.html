@@ -456,6 +456,7 @@
 
       function playsong(skipTimestamp) {
         console.log("Playing song");
+        console.log(audio);
         if (!skipTimestamp) {
           socket.emit("play", { timestamp: audio.currentTime });
         }

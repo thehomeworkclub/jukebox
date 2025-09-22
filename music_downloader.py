@@ -13,7 +13,7 @@ from dataclasses import asdict
 
 import dotenv
 dotenv.load_dotenv()
-downloader_settings = {"output": "./library"}
+downloader_settings = {"output": "./library", "bitrate":"128k"}
 spotdl_instance = Spotdl(os.getenv("SPOTIFY_CLIENT_ID"), os.getenv("SPOTIFY_CLIENT_SECRET"), downloader_settings=downloader_settings)
 
 
