@@ -27,7 +27,7 @@ queue = []
 current_song_index = 0
 last_update_time = time.time()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, filename='app.log',filemode='a')
 
 LIBRARY_FOLDER = 'library'
 LIBDATA_FILE = 'libdata.json'

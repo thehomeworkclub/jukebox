@@ -10,12 +10,13 @@ from spotdl import Spotdl
 from spotdl.types.song import Song
 from pathlib import Path
 from dataclasses import asdict
+from spotdl.utils.formatter import create_file_name
 
 import dotenv
 dotenv.load_dotenv()
 downloader_settings = {"output": "./library", "bitrate":"128k"}
 spotdl_instance = Spotdl(os.getenv("SPOTIFY_CLIENT_ID"), os.getenv("SPOTIFY_CLIENT_SECRET"), downloader_settings=downloader_settings)
-
+logging.debug(f"Spotdl instance created with settings: {spotdl_instance.downloader}")
 
 
 
@@ -67,17 +68,23 @@ def download_song_sync(song: dict, library_path="./library") -> dict:
         # Search song metadata
         songs = spotdl_instance.search([url])
         if not songs:
-            print(f"No song found for {url}")
+            logging.warning(f"No song found for {url}")
             return song
+        logging.debug(f"Search results: {songs}")
+        for s in songs:
+            song['path'] = str(create_file_name(
+                s, downloader_settings["output"],file_extension="mp3", restrict=None, file_name_length=None  # type: ignore
+            ))
         results = spotdl_instance.download_songs(songs)
+        logging.debug(f"Download results: {results}")
         if results:
             song['path'] = str(results[0].file_path)
-            print(f"Downloaded to {song['path']}")
+            logging.info(f"Downloaded to {song['path']}")
         else:
-            print(f"Failed to download {song['name']}")
+            logging.warning(f"Failed to download {song['name']}")
 
     except Exception as e:
-        print(f"Error downloading {song['name']}: {e}")
+        logging.error(f"Error downloading {song['name']}: {e}")
     return song
 
 def load_libdata(libdata_file):
@@ -97,21 +104,32 @@ def is_valid_spotify_url(url):
 
 async def maindownload(playlist_url, batch_size=5):
     if not is_valid_spotify_url(playlist_url):
-        print("Invalid Spotify URL")
+        logging.debug("Invalid Spotify URL")
         return
     incoming_file = fetch_metadata(playlist_url)
     if not incoming_file:
         return
     new_songs = filter_new_songs(incoming_file)
     if new_songs:
-        print("New songs to be added:")
+        logging.debug(f"new_songs1: {new_songs}")
+        logging.debug("New songs to be added:")
         for song in new_songs:
             song['name'] = decode_unicode_escape(song['name'])
             song['artist'] = decode_unicode_escape(song['artist'])
-            print(f"{song['name']} by {song['artists']}")
+            logging.debug(f"{song['name']} by {song['artists']}")
+            logging.debug(f"Song: {song}")
         libdata = load_libdata("libdata.json")
+        logging.debug(f"new_songs2: {new_songs}")
         downloaded_songs = []
+        logging.debug(f"new_songs3: {new_songs}")
+
+
+        # Something is wrong here. In the first for loop, song has values in it, but in the second for loop, song is empty.
+
+
         for song in new_songs:
+            logging.debug(f"new_songs4: {new_songs}")
+            logging.debug(f"Test point 1: song is {song}")
             downloaded_song = download_song_sync(song, "./library")
             downloaded_songs.append(downloaded_song)
             logging.info(f"Downloaded song: {downloaded_song}")
@@ -120,7 +138,7 @@ async def maindownload(playlist_url, batch_size=5):
         if os.path.exists(incoming_file):
             os.remove(incoming_file)
     else:
-        print("No new songs found.")
+        logging.debug("No new songs found.")
 if __name__ == "__main__":
     playlist_url = "https://open.spotify.com/track/5Y0hBfi0F1uGvuKpIXvr2C?si=78f9c4ec73c24d6b"
     asyncio.run(maindownload(playlist_url))
